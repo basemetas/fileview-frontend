@@ -1,0 +1,30 @@
+@use '../../../public.scss';
+
+.textLayer {
+  // TextLayerBuilder 生成的标准样式
+  :global {
+    span {
+      color: transparent;
+      position: absolute;
+      white-space: pre;
+      cursor: text;
+      transform-origin: 0% 0%;
+      // 关键:使用 line-height 让选中高度与文字高度一致
+      line-height: 1;
+      // 添加 padding 确保选中区域完整覆盖
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    // 选中文字的样式
+    ::selection {
+      background: rgba(0, 120, 215, 1);
+      color: transparent !important;
+    }
+
+    // 字符间距保持精确
+    br::selection {
+      background: transparent;
+    }
+  }
+}

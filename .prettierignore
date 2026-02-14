@@ -1,0 +1,23 @@
+# 依赖
+node_modules
+dist
+build
+
+# 构建产物
+*.min.js
+*.min.css
+
+# 配置文件
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# 其他
+.DS_Store
+*.log
+.vscode
+.idea
+
+# 特殊 JS 文件（已压缩或第三方）
+src/components/render/cell/luckyexcel.esm.js
+src/components/render/cell/worker.js

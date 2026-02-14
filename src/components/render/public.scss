@@ -1,0 +1,140 @@
+// 页面容器
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  // justify-content: center;
+  // align-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  position: relative;
+  padding: 0 2px;
+  box-sizing: border-box;
+  touch-action: auto;
+  overflow: hidden;
+
+  // 顶部工具条
+  .topbar {
+    flex: 0 0 46px; // 固定顶部栏高度
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    background-color: #fff;
+    border-bottom: 1px solid #d9d9d9;
+    gap: 12px;
+    position: relative;
+    z-index: 1020; // 确保顶部栏在最上层
+    pointer-events: auto;
+
+    .sidebarToggle {
+      font-size: 16px;
+      color: #666;
+      cursor: pointer;
+      flex-shrink: 0;
+
+      &:hover {
+        color: #1890ff;
+      }
+
+      :global(.ant-btn) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .fileName {
+      // flex: 1;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+    }
+  }
+
+  .pageCanvas {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    // user-select: none;
+    // -webkit-user-select: none;
+    // -moz-user-select: none;
+    // -ms-user-select: none;
+
+    .pageMainContent {
+      flex: 1;
+      min-height: 100%;
+      overflow: auto;
+    }
+
+    .pageSidebar {
+      width: 220px;
+      height: 100%;
+      overflow: auto;
+    }
+  }
+}
+
+// 普通单页纸张，md 及 code 适用
+
+.singlePageContainer {
+  padding: 10px 0;
+}
+.singlePage {
+  width: 960px;
+  max-width: 1200px;
+  background-color: #fff;
+  margin: 0 auto;
+  border: 1px solid #d1d9e0;
+  border-radius: 6px;
+  overflow: hidden;
+  // user-select: none;
+  // -webkit-user-select: none;
+  // -moz-user-select: none;
+  // -ms-user-select: none;
+  // 平板设备适配 (768px - 1366px)
+  @media (max-width: 1366px) and (min-width: 769px) {
+    width: calc(100% - 20px);
+  }
+
+  // 移动设备适配 (768px 及以下)
+  @media (max-width: 768px) {
+    width: calc(100% - 20px);
+    margin: 5px auto;
+  }
+
+  .header {
+    height: 48px;
+    line-height: 38px;
+    padding: 8px 10px;
+    background-color: #f6f8fa;
+    border-bottom: 1px solid #d1d9e0;
+
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.fixMaginCollapse {
+  height: 10px;
+  font-size: 0;
+}
+
+.coverLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: all;
+  background-color: rgba(217, 21, 21, 0.5);
+}

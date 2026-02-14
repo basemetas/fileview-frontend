@@ -1,0 +1,16 @@
+@use '../public.scss';
+
+.pageContainer {
+  svg {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    &:focus-visible {
+      outline: none !important;
+    }
+  }
+  :global(.bjs-powered-by) {
+    display: none !important;
+  }
+}

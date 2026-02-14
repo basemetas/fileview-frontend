@@ -1,0 +1,64 @@
+@use '../public.scss';
+
+.codePreview {
+  padding: 16px;
+  font-size: 12px;
+  line-height: 1.6;
+
+  // 平板设备适配 (768px - 1024px)
+  @media (max-width: 1366px) and (min-width: 769px) {
+    padding: 20px;
+  }
+
+  // 移动设备适配 (768px 及以下)
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
+
+  // 代码块行号样式
+  pre {
+    position: relative;
+
+    // code.hljs {
+    //   // 为行号留出空间
+    //   padding-left: 50px !important;
+    //   border-radius: 8px;
+    // }
+
+    // // 行号容器样式
+    // .hljs-ln {
+    //   border-collapse: collapse;
+    //   width: 100%;
+    //   table-layout: fixed;
+
+    //   // 行号列样式
+    //   .hljs-ln-numbers {
+    //     vertical-align: top;
+    //     padding-right: 15px;
+    //     padding-left: 15px;
+    //     text-align: right;
+    //     color: #999;
+    //     user-select: none;
+    //     border-right: 1px solid #ddd;
+    //     position: absolute;
+    //     left: 0;
+    //     width: 30px;
+    //     box-sizing: content-box;
+    //     background-color: #f6f8fa;
+    //     border-top-left-radius: 8px;
+    //     border-bottom-left-radius: 8px;
+    //   }
+
+    //   // 代码列样式
+    //   .hljs-ln-code {
+    //     padding-left: 50px;
+    //   }
+
+    //   // 行样式
+    //   .hljs-ln-line {
+    //     display: block;
+    //     min-height: 22px;
+    //   }
+    // }
+  }
+}

@@ -1,0 +1,70 @@
+# 依赖目录
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 构建输出
+dist/
+build/
+.out/
+.next/
+
+# 缓存文件
+.vite/
+.turbo/
+.cache/
+.qoder/
+
+# 环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 日志文件
+*.log
+logs/
+
+# 运行时数据
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# 覆盖率目录
+coverage/
+.nyc_output/
+
+# IDE 文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 临时文件
+*.tmp
+*.temp
+
+# 包管理器锁文件（根据你使用的包管理器选择保留一个）
+# package-lock.json   # 如果你使用 npm
+# yarn.lock          # 如果你使用 Yarn
+# pnpm-lock.yaml     # 如果你使用 pnpm
+
+# TypeScript 编译缓存
+.tsbuildinfo
+docker-compose.yml
+.devcontainer
+
+mock/

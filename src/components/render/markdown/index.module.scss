@@ -1,0 +1,48 @@
+@use '../public.scss';
+
+.markdownPreview {
+  padding: 40px;
+  line-height: 1.6;
+
+  // 平板设备适配 (768px - 1024px)
+  @media (max-width: 1366px) and (min-width: 769px) {
+    padding: 30px;
+  }
+
+  // 移动设备适配 (768px 及以下)
+  @media (max-width: 768px) {
+    padding: 20px;
+  }
+
+  h1 {
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3em;
+  }
+
+  code {
+    background-color: #f6f8fa;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+  }
+
+  pre {
+    background-color: #f6f8fa;
+    padding: 1em;
+    border-radius: 5px;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.45;
+  }
+
+  pre code {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    white-space: pre;
+    word-wrap: normal;
+  }
+
+  mark {
+    background-color: #fff8c5 !important;
+  }
+}

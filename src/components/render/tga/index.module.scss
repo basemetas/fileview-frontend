@@ -1,0 +1,12 @@
+@use '../public.scss';
+
+.tga-render-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}

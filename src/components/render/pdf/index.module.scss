@@ -1,0 +1,220 @@
+@use '../public.scss';
+
+.pageContainer {
+  background-color: #e7ecf1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+
+  .pageCanvas {
+    width: 100%;
+    flex: 1; // 占据剩余空间
+    overflow: auto; // 改为 auto，允许滚动查看放大后的内容
+    position: relative;
+    display: flex;
+
+    // 侧边栏样式
+    .pageSidebar {
+      width: 240px;
+      flex-shrink: 0;
+      height: 100%;
+      overflow: hidden;
+      border-right: 1px solid #d9d9d9;
+      background-color: #f5f5f5;
+
+      @media (max-width: 768px) {
+        width: 200px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 100;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+      }
+    }
+
+    .pageMainContent {
+      width: 100%;
+      position: relative;
+      height: auto;
+      // padding-bottom: 10px;
+      padding-bottom: 48px;
+      flex: 1;
+      // min-width: 100%;
+      // width: fit-content;
+      // overflow-y: auto;
+      // overflow-x: hidden;
+
+      .fixedBottom {
+        width: 100%;
+        display: flex;
+        flex: 1;
+        justify-content: center;
+        align-items: center;
+        // background-color: red;
+        border-radius: 10px;
+        // position: sticky;
+        position: fixed;
+        z-index: 999;
+        bottom: 10px;
+        user-select: none; // 禁止选中
+
+        .box {
+          display: flex;
+          // width: 100%;
+          padding: 5px 10px;
+          border-radius: 20px;
+          background-color: rgba(231, 236, 241, 0.4);
+          border: 1px solid #ddd;
+          user-select: none; // 禁止选中
+        }
+        .pagination {
+          user-select: none; // 禁止选中
+          :global(.ant-pagination-simple-pager input) {
+            width: 40px !important;
+            padding: 0 2px;
+            margin-right: 0 !important;
+            user-select: text; // 输入框允许选中
+          }
+          li {
+            margin: 0 !important;
+          }
+          :global(.ant-pagination-slash) {
+            margin-right: 5px !important;
+          }
+        }
+        .zoomIcons {
+          font-size: 16px;
+          user-select: none; // 禁止选中
+          .zoomIcon {
+            padding: 3px;
+            margin: 0 3px;
+            color: rgba(0, 0, 0, 0.6);
+            cursor: pointer;
+            &:hover {
+              color: #1890ff;
+            }
+          }
+        }
+      }
+
+      .fixedBottomMobile {
+        bottom: 50px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+
+        .box {
+          background-color: rgba(231, 236, 241, 1);
+          border: 1px solid #ddd;
+        }
+
+        &.visible {
+          opacity: 1;
+          pointer-events: auto;
+        }
+      }
+    }
+  }
+
+  .hideScrollbar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+    &::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+  }
+}
+
+.loading {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  margin: -24px 0 0 -24px;
+}
+
+.textLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: transparent;
+  user-select: text;
+  pointer-events: auto;
+}
+
+.topbar {
+  .topbarLeft {
+    display: flex;
+    align-items: center;
+    min-width: 200px;
+    // max-width: 450px;
+    .fileName {
+      flex: 1;
+      display: inline-block;
+      max-width: 400px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    // 移动端竖屏时隐藏按钮文字
+    @media (max-width: 1024px) {
+      .fileName {
+        max-width: 40%;
+      }
+    }
+    @media (max-width: 750px) {
+      .fileName {
+        max-width: 200px;
+      }
+    }
+  }
+}
+
+.scrollSlider {
+  position: fixed;
+  right: 10px;
+  top: 80px;
+  bottom: 60px;
+  width: 8px;
+  z-index: 1020;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+
+  :global {
+    .ant-slider {
+      margin: 0;
+      height: 60%;
+      pointer-events: none;
+    }
+
+    .ant-slider-rail {
+      display: none;
+      width: 2px;
+      background-color: rgba(0, 0, 0, 0.15);
+      // margin-left: -10px;
+    }
+
+    .ant-slider-handle {
+      width: 24px;
+      height: 40px;
+      border: 1px solid #d9d9d9;
+      padding: 14px;
+      border-radius: 4px;
+      overflow: hidden;
+      background-image: url(./thumb.svg);
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      margin-left: -20px;
+      pointer-events: auto;
+      box-shadow: none;
+
+      &::after {
+        display: none;
+      }
+    }
+  }
+}
