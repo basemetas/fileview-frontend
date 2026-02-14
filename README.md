@@ -88,3 +88,9 @@
 - [Mock.js](https://github.com/nuysoft/Mock) - 数据模拟工具
 - [vite-plugin-mock](https://github.com/vbenjs/vite-plugin-mock) - Vite Mock 插件
 - [patch-package](https://github.com/ds300/patch-package) - NPM 包补丁工具
+
+### 许可证
+
+本项目源码文件头部已统一添加 **Apache License, Version 2.0** 声明，整体亦遵循 Apache-2.0 开源许可证。
+
+> 使用、修改和分发本项目时，请遵守 Apache License 2.0 的相关条款。
