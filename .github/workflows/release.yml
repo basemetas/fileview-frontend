@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      # 读取 package.json version
+      - name: Get package version
+        id: pkg
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # 获取当前 tag
+      - name: Get tag version
+        id: tag
+        run: |
+          TAG=${GITHUB_REF#refs/tags/v}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      # 校验 tag 和 package.json version 一致
+      - name: Validate version
+        run: |
+          if [ "${{ steps.pkg.outputs.version }}" != "${{ steps.tag.outputs.tag }}" ]; then
+            echo "Tag version does not match package.json version"
+            exit 1
+          fi
+
+      - name: Build
+        run: npm run build
+
+      - name: Zip dist
+        run: |
+          zip -r app-v${{ steps.pkg.outputs.version }}.zip dist
+
+      # 自动生成 changelog（基于 commit）
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            git log --pretty=format:"- %s" > CHANGELOG.md
+          else
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s" > CHANGELOG.md
+          fi
+
+      # 创建 Release（自动防重复）
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.pkg.outputs.version }}
+          name: v${{ steps.pkg.outputs.version }}
+          body_path: CHANGELOG.md
+          files: fileview-frontend-v${{ steps.pkg.outputs.version }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
