@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable no-unused-vars */
+
 export enum IDisplayMode {
   // 单页模式
   SinglePage = 'single',
