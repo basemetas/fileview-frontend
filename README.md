@@ -6,7 +6,7 @@
   <a href="https://hub.docker.com/r/basemetas/fileview/tags"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/basemetas/fileview"></a>
   <a href="https://github.com/BaseMetas/fileview-frontend/graphs/contributors"><img src="https://img.shields.io/github/contributors/BaseMetas/fileview-frontend?style=flat-square" alt="contributors"></a>
   <a href="https://github.com/BaseMetas/fileview-frontend/commits"><img src="https://img.shields.io/github/commit-activity/w/BaseMetas/fileview-frontend?style=flat-square" alt="commit activity"></a>
-  <a href="https://github.com/BaseMetas/fileview-frontend"><img src="https://img.shields.io/github/actions/workflow/status/basemetas/fileview-frontend/lint.yml?branch=main&style=flat-square&label=CI" alt="CI"></a>
+  <a href="https://github.com/BaseMetas/fileview-frontend"><img src="https://img.shields.io/github/actions/workflow/status/basemetas/fileview-frontend/lint.yml?branch=main&style=flat-square&label=lint" alt="lint"></a>
 </div>
 
 ## 软件版本
