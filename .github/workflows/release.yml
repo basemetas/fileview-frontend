@@ -54,7 +54,7 @@ jobs:
 
       - name: Zip dist
         run: |
-          zip -r app-v${{ steps.pkg.outputs.version }}.zip dist
+          zip -r fileview-frontend-v${{ steps.pkg.outputs.version }}.zip dist
 
       # 自动生成 changelog（基于 commit）
       - name: Generate changelog
