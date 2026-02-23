@@ -9,6 +9,11 @@
   <a href="https://github.com/BaseMetas/fileview-frontend"><img src="https://img.shields.io/github/actions/workflow/status/basemetas/fileview-frontend/lint.yml?branch=main&style=flat-square&label=lint" alt="lint"></a>
 </div>
 
+## 主项目仓库
+
+https://github.com/BaseMetas/fileview
+
+
 ## 软件版本
 
 - [Node.js 22+](https://nodejs.org/)
