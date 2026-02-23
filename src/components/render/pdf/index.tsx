@@ -24,7 +24,7 @@ import Siderbar from './components/sidebar';
 import Topbar from '@/components/topbar';
 import { useLoading } from '@/hooks/loading';
 import pdfWorkerUrl from './pdf-worker';
-import { Pagination, Select, Button, Slider } from 'antd';
+import { Pagination, Select, Button } from 'antd';
 import {
   ZoomInOutlined,
   ZoomOutOutlined,
@@ -106,8 +106,7 @@ const PdfViewer = (props: renderProps) => {
   const [highlightRects, setHighlightRects] = useState<HighlightRect[]>([]);
 
   // 移动端滚动显示/隐藏 fixedBottom
-  const [showFixedBottom, setShowFixedBottom] = useState(false);
-  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showFixedBottom = false;
 
   // 等待密码输入，验证密码并发起新的轮询，返回结果
   const waitVerifyPassword = useCallback(() => {

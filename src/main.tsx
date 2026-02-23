@@ -34,7 +34,7 @@ if (typeof (window as any).ResizeObserver === 'undefined') {
 }
 // Element.toggleAttribute polyfill for Chrome 60
 if (!Element.prototype.toggleAttribute) {
-  Element.prototype.toggleAttribute = function(name: string, force?: boolean) {
+  Element.prototype.toggleAttribute = function (name: string, force?: boolean) {
     if (force !== void 0) force = !!force;
     if (this.hasAttribute(name)) {
       if (force) return true;
@@ -47,12 +47,15 @@ if (!Element.prototype.toggleAttribute) {
   };
 }
 // HTMLSlotElement.assignedElements polyfill for Chrome 60
-if (typeof HTMLSlotElement !== 'undefined' && !HTMLSlotElement.prototype.assignedElements) {
+if (
+  typeof HTMLSlotElement !== 'undefined' &&
+  !HTMLSlotElement.prototype.assignedElements
+) {
   Object.defineProperty(HTMLSlotElement.prototype, 'assignedElements', {
-    value: function(options?: {flatten?: boolean}) {
+    value: function (options?: { flatten?: boolean }) {
       const nodes = this.assignedNodes(options);
       return nodes.filter((node: Node) => node.nodeType === Node.ELEMENT_NODE);
-    }
+    },
   });
 }
 import React from 'react';

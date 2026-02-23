@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 // pdfjs-dist 2.x worker URL
 // Chrome 60 兼容：使用本地静态 worker 文件
 import { getAppContext } from '@/utils';

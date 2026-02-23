@@ -60,7 +60,7 @@ interface TopbarProps {
   containerRef?: React.RefObject<HTMLDivElement>;
   previewUrl?: string;
   displayMode?: IDisplayMode.SinglePage | IDisplayMode.DoublePage;
-  // eslint-disable-next-line no-unused-vars
+
   onDisplayModeChange?: (
     mode: IDisplayMode.SinglePage | IDisplayMode.DoublePage,
   ) => void;

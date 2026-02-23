@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useRef, useEffect, useContext, Suspense, useState } from 'react';
+import { useRef, useEffect, useContext } from 'react';
 import * as pdfjsViewer from 'pdfjs-dist/web/pdf_viewer';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import styles from './index.module.scss';
@@ -22,7 +22,7 @@ import WaterMarker from '@/components/watermarker';
 
 import { log } from '@/utils';
 import AppContext from '@/context';
-import { EventType, IMode } from '@/types';
+import { IMode } from '@/types';
 
 // 高亮矩形接口
 interface HighlightRect {
@@ -74,7 +74,6 @@ interface PageComponentProps {
 
 const Page = (props: PageComponentProps) => {
   const {
-    maxPages,
     pageInfo,
     scale,
     isPhone,
@@ -88,11 +87,7 @@ const Page = (props: PageComponentProps) => {
   const textLayerRef = useRef<HTMLDivElement>(null);
   const textLayerBuilderRef = useRef<any>(null);
 
-  const {
-    permission,
-    watermark,
-    mode = IMode.normal,
-  } = useContext(AppContext);
+  const { permission, watermark } = useContext(AppContext);
   const finalPermission = {
     print: true,
     download: true,
