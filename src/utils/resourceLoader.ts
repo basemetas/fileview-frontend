@@ -40,7 +40,9 @@ const resourceCache: ResourceCache = {};
 class ResourceLoadError extends Error {
   constructor(
     message: string,
+    // eslint-disable-next-line no-unused-vars
     public url: string,
+    // eslint-disable-next-line no-unused-vars
     public type: string,
   ) {
     super(message);

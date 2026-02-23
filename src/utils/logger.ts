@@ -17,6 +17,7 @@
 import log from 'loglevel';
 
 const defaultLogLevel =
+  // eslint-disable-next-line no-undef
   process.env.NODE_ENV === 'production' ? 'warn' : 'debug';
 log.setLevel(defaultLogLevel);
 export default log;

@@ -24,7 +24,7 @@ import Siderbar from './components/sidebar';
 import Topbar from '@/components/topbar';
 import { useLoading } from '@/hooks/loading';
 import pdfWorkerUrl from './pdf-worker';
-import { Pagination, Select, Button, Slider } from 'antd';
+import { Pagination, Select, Button } from 'antd';
 import {
   ZoomInOutlined,
   ZoomOutOutlined,
@@ -106,8 +106,7 @@ const PdfViewer = (props: renderProps) => {
   const [highlightRects, setHighlightRects] = useState<HighlightRect[]>([]);
 
   // 移动端滚动显示/隐藏 fixedBottom
-  const [showFixedBottom, setShowFixedBottom] = useState(false);
-  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showFixedBottom = false;
 
   // 等待密码输入，验证密码并发起新的轮询，返回结果
   const waitVerifyPassword = useCallback(() => {
@@ -145,6 +144,142 @@ const PdfViewer = (props: renderProps) => {
     };
   }, []);
 
+  // 加载PDF文档
+  let pdfInstance: any | null = null;
+  const loadPdf = useCallback(
+    async (password?: string) => {
+      log.debug('Loading PDF...');
+      const options = { url: src, password };
+      try {
+        const loadingTask = pdfjsLib.getDocument(options);
+
+        // pdfjs-dist 2.4.456: 监听密码事件
+        loadingTask.onPassword = (
+          // eslint-disable-next-line no-unused-vars
+          _updatePassword: (password: string) => void,
+          reason: number,
+        ) => {
+          log.debug('onPassword triggered, reason:', reason);
+
+          // 触发密码输入弹窗
+          waitVerifyPassword();
+
+          // reason: 1=NEED_PASSWORD, 2=INCORRECT_PASSWORD
+          if (reason === 2) {
+            log.debug('密码错误');
+            setPasswordErrorMsg('密码错误');
+          } else if (reason === 1) {
+            log.debug('PDF需要密码');
+          }
+
+          // 注意: 这里不调用 updatePassword，等待用户输入
+        };
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        pdfInstance = await loadingTask.promise;
+        setPdfDoc(pdfInstance);
+
+        // 根据 pageLimit 限制渲染页数
+        const totalPages = pdfInstance.numPages;
+        const maxPages =
+          pageLimit > 0 ? Math.min(pageLimit, totalPages) : totalPages;
+        log.debug(`总页数: ${totalPages}, 限制渲染: ${maxPages} 页`);
+
+        // 预计算页面的viewport信息和文本内容，只处理允许的页数
+        const pageInfos: PageInfo[] = [];
+        for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
+          const page = await pdfInstance.getPage(pageNum);
+          const viewport = page.getViewport({ scale: 1.0 }); // pdfjs-dist 2.x
+
+          // 获取页面文本内容
+          let textContent: any | undefined;
+          try {
+            textContent = await page.getTextContent();
+          } catch (error) {
+            log.warn(`获取第${pageNum}页文本内容失败:`, error);
+          }
+
+          pageInfos.push({
+            pageNum,
+            viewport,
+            rendered: false,
+            textContent,
+          });
+        }
+        setPages(pageInfos);
+        pagesRef.current = pageInfos; // 同步更新 ref
+
+        // 根据第一页的宽度和容器宽度计算合适的缩放比例
+        if (!initialScaleSet.current && pageInfos.length > 0) {
+          const containerWidth =
+            containerRef.current?.clientWidth || window.innerWidth;
+          const firstPageWidth = pageInfos[0].viewport.width;
+          // 计算适合容器宽度的缩放比例，留出一些边距（-20px）
+          const fitScale = (containerWidth - 20) / firstPageWidth;
+
+          // 单页模式：最大 150%，但不能超出屏幕
+          // 移动端：限制在 0.5-2.0 范围
+          let initialScale;
+          if (isPhone) {
+            initialScale = Math.max(0.5, Math.min(fitScale, 2.0));
+          } else {
+            // PC 端单页：取 fitScale 和 1.5 中的较小值，确保不超出
+            initialScale = Math.max(0.5, Math.min(fitScale, 1.5));
+          }
+
+          setScale(initialScale);
+          scaleRef.current = initialScale;
+          initialScaleSet.current = true;
+        }
+
+        hideLoading();
+      } catch (error: any) {
+        // pdfjs-dist 2.4.456: 详细日志分析
+        log.debug(
+          'Caught error:',
+          error,
+          'Type:',
+          typeof error,
+          'Code:',
+          error?.code,
+          'Name:',
+          error?.name,
+        );
+
+        // 检查是否是密码错误 (兼容多种格式)
+        const isPasswordError =
+          error?.name === 'PasswordException' ||
+          error?.code === 1 || // NEED_PASSWORD
+          error?.code === 2 || // INCORRECT_PASSWORD
+          (error?.message &&
+            String(error.message).toLowerCase().includes('password'));
+
+        if (isPasswordError) {
+          // 触发密码输入弹窗
+          waitVerifyPassword();
+
+          // 安全获取 PasswordResponses 常量
+          const incorrectCode =
+            pdfjsLib.PasswordResponses?.INCORRECT_PASSWORD ?? 2;
+          const needCode = pdfjsLib.PasswordResponses?.NEED_PASSWORD ?? 1;
+
+          if (error?.code === incorrectCode) {
+            log.debug('密码错误');
+            setPasswordErrorMsg('密码错误');
+          } else if (error?.code === needCode) {
+            log.debug('PDF需要密码');
+          } else {
+            log.debug('其他密码相关错误');
+          }
+        } else {
+          log.error('PDF加载失败:', error);
+          showLoadingError();
+        }
+      }
+    },
+    [waitVerifyPassword, showLoading, src, pageLimit, hideLoading],
+  );
+
   // 缓存 handlePasswordSubmit，避免每次渲染创建新函数
   const handlePasswordSubmit = useCallback(
     (password) => {
@@ -157,140 +292,8 @@ const PdfViewer = (props: renderProps) => {
       // setPassword(password);
       loadPdf(password);
     },
-    [showLoading],
+    [loadPdf, showLoading],
   );
-
-  // 加载PDF文档
-  let pdfInstance: any | null = null;
-  const loadPdf = async (password?: string) => {
-    log.debug('Loading PDF...');
-    const options = { url: src, password };
-    try {
-      const loadingTask = pdfjsLib.getDocument(options);
-
-      // pdfjs-dist 2.4.456: 监听密码事件
-      loadingTask.onPassword = (
-        // eslint-disable-next-line no-unused-vars
-        _updatePassword: (password: string) => void,
-        reason: number,
-      ) => {
-        log.debug('onPassword triggered, reason:', reason);
-
-        // 触发密码输入弹窗
-        waitVerifyPassword();
-
-        // reason: 1=NEED_PASSWORD, 2=INCORRECT_PASSWORD
-        if (reason === 2) {
-          log.debug('密码错误');
-          setPasswordErrorMsg('密码错误');
-        } else if (reason === 1) {
-          log.debug('PDF需要密码');
-        }
-
-        // 注意: 这里不调用 updatePassword，等待用户输入
-      };
-
-      pdfInstance = await loadingTask.promise;
-      setPdfDoc(pdfInstance);
-
-      // 根据 pageLimit 限制渲染页数
-      const totalPages = pdfInstance.numPages;
-      const maxPages =
-        pageLimit > 0 ? Math.min(pageLimit, totalPages) : totalPages;
-      log.debug(`总页数: ${totalPages}, 限制渲染: ${maxPages} 页`);
-
-      // 预计算页面的viewport信息和文本内容，只处理允许的页数
-      const pageInfos: PageInfo[] = [];
-      for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
-        const page = await pdfInstance.getPage(pageNum);
-        const viewport = page.getViewport({ scale: 1.0 }); // pdfjs-dist 2.x
-
-        // 获取页面文本内容
-        let textContent: any | undefined;
-        try {
-          textContent = await page.getTextContent();
-        } catch (error) {
-          log.warn(`获取第${pageNum}页文本内容失败:`, error);
-        }
-
-        pageInfos.push({
-          pageNum,
-          viewport,
-          rendered: false,
-          textContent,
-        });
-      }
-      setPages(pageInfos);
-      pagesRef.current = pageInfos; // 同步更新 ref
-
-      // 根据第一页的宽度和容器宽度计算合适的缩放比例
-      if (!initialScaleSet.current && pageInfos.length > 0) {
-        const containerWidth =
-          containerRef.current?.clientWidth || window.innerWidth;
-        const firstPageWidth = pageInfos[0].viewport.width;
-        // 计算适合容器宽度的缩放比例，留出一些边距（-20px）
-        const fitScale = (containerWidth - 20) / firstPageWidth;
-
-        // 单页模式：最大 150%，但不能超出屏幕
-        // 移动端：限制在 0.5-2.0 范围
-        let initialScale;
-        if (isPhone) {
-          initialScale = Math.max(0.5, Math.min(fitScale, 2.0));
-        } else {
-          // PC 端单页：取 fitScale 和 1.5 中的较小值，确保不超出
-          initialScale = Math.max(0.5, Math.min(fitScale, 1.5));
-        }
-
-        setScale(initialScale);
-        scaleRef.current = initialScale;
-        initialScaleSet.current = true;
-      }
-
-      hideLoading();
-    } catch (error: any) {
-      // pdfjs-dist 2.4.456: 详细日志分析
-      log.debug(
-        'Caught error:',
-        error,
-        'Type:',
-        typeof error,
-        'Code:',
-        error?.code,
-        'Name:',
-        error?.name,
-      );
-
-      // 检查是否是密码错误 (兼容多种格式)
-      const isPasswordError =
-        error?.name === 'PasswordException' ||
-        error?.code === 1 || // NEED_PASSWORD
-        error?.code === 2 || // INCORRECT_PASSWORD
-        (error?.message &&
-          String(error.message).toLowerCase().includes('password'));
-
-      if (isPasswordError) {
-        // 触发密码输入弹窗
-        waitVerifyPassword();
-
-        // 安全获取 PasswordResponses 常量
-        const incorrectCode =
-          pdfjsLib.PasswordResponses?.INCORRECT_PASSWORD ?? 2;
-        const needCode = pdfjsLib.PasswordResponses?.NEED_PASSWORD ?? 1;
-
-        if (error?.code === incorrectCode) {
-          log.debug('密码错误');
-          setPasswordErrorMsg('密码错误');
-        } else if (error?.code === needCode) {
-          log.debug('PDF需要密码');
-        } else {
-          log.debug('其他密码相关错误');
-        }
-      } else {
-        log.error('PDF加载失败:', error);
-        showLoadingError();
-      }
-    }
-  };
 
   useEffect(() => {
     if (!src) return;
@@ -302,7 +305,7 @@ const PdfViewer = (props: renderProps) => {
         pdfInstance.destroy();
       }
     };
-  }, [src]); // 移除scale依赖，避免重复加载
+  }, [loadPdf, pdfInstance, src]); // 移除scale依赖，避免重复加载
 
   // 初始化搜索控制器
   useEffect(() => {
@@ -320,7 +323,7 @@ const PdfViewer = (props: renderProps) => {
       searchControllerRef.current.setRenderScale(scale);
       log.debug('搜索控制器已初始化');
     }
-  }, [pdfDoc, pages.length]);
+  }, [pdfDoc, pages.length, scale]);
 
   // 注意: viewport 只在初始加载时计算，scale 变化时不重新计算 viewport
   // 这样可以避免不必要的重复渲染和闪烁问题

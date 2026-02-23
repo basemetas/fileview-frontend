@@ -22,6 +22,7 @@ import { log } from '@/utils';
 interface Props {
   children: ReactNode;
   // 自定义错误回退界面
+  // eslint-disable-next-line no-unused-vars
   fallback?: (error: Error, errorInfo: React.ErrorInfo) => ReactNode;
 }
 
@@ -102,33 +103,36 @@ class ErrorBoundary extends Component<Props, State> {
               </Button>,
             ]}
           >
-            {process.env.NODE_ENV === 'development2' && this.state.error && (
-              <div
-                style={{
-                  textAlign: 'left',
-                  background: '#fff',
-                  padding: '16px',
-                  borderRadius: '4px',
-                  marginTop: '16px',
-                  maxWidth: '600px',
-                }}
-              >
-                <h4 style={{ color: '#ff4d4f', marginBottom: '8px' }}>
-                  错误详情（开发环境）：
-                </h4>
-                <pre
+            {
+              // eslint-disable-next-line no-undef
+              process.env.NODE_ENV === 'development2' && this.state.error && (
+                <div
                   style={{
-                    fontSize: '12px',
-                    color: '#666',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
+                    textAlign: 'left',
+                    background: '#fff',
+                    padding: '16px',
+                    borderRadius: '4px',
+                    marginTop: '16px',
+                    maxWidth: '600px',
                   }}
                 >
-                  {this.state.error.toString()}
-                  {this.state.errorInfo?.componentStack}
-                </pre>
-              </div>
-            )}
+                  <h4 style={{ color: '#ff4d4f', marginBottom: '8px' }}>
+                    错误详情（开发环境）：
+                  </h4>
+                  <pre
+                    style={{
+                      fontSize: '12px',
+                      color: '#666',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {this.state.error.toString()}
+                    {this.state.errorInfo?.componentStack}
+                  </pre>
+                </div>
+              )
+            }
           </Result>
         </div>
       );

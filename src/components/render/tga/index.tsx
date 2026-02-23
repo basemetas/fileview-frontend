@@ -31,7 +31,7 @@ const TgaRender = (props: renderProps) => {
       document.getElementById('tga-render')?.appendChild(tga.getCanvas());
     });
     hideLoading();
-  }, []);
+  }, [hideLoading, src]);
 
   return (
     <div className={styles.pageContainer}>

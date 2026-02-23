@@ -79,7 +79,7 @@ const ImageViewer = (props: renderProps) => {
         viewerRef.current = null;
       }
     };
-  }, []);
+  }, [hideLoading, showLoadingError, src]);
 
   // 打开查看器
   const openViewer = () => {

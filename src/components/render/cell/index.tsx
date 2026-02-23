@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { renderProps, IMode } from '@/types';
 import { loadJS, loadCSS } from '@/utils';
 import styles from './index.module.scss';
@@ -47,95 +47,101 @@ export default function CellRender(props: renderProps) {
     src?.toLocaleLowerCase().endsWith('.csv');
 
   // 处理 CSV 文件
-  const handleCsv = async (url: string) => {
-    try {
-      const resp = await fetch(url, { credentials: 'omit' });
-      if (!resp.ok) {
-        log.error('Fetch failed:', resp.status, resp.statusText);
-        hideLoading();
-        return;
-      }
-
-      const buf = await resp.arrayBuffer();
-
-      // 1. 取前 1KB 做采样
-      const sampleBytes = new Uint8Array(buf, 0, 1024);
-
-      // ⚡ 关键：先用 latin1 解码为单字节字符串
-      const sampleStr = new TextDecoder('latin1').decode(sampleBytes);
-
-      // 2. jschardet 检测
-      let detect = jschardet.detect(sampleStr);
-      let encoding = 'utf-8'; // 默认
-      if (detect.encoding) {
-        encoding = detect.encoding.toLowerCase();
-        if (encoding === 'gb2312') encoding = 'gbk'; // 常见别名修正
-      }
-      log.debug('检测到编码:', encoding);
-
-      // 3. 用真实编码解码整个文件
-      const decoder = new TextDecoder(encoding);
-      const csvText = decoder.decode(buf);
-
-      // 解析 CSV
-      const result = Papa.parse(csvText, { skipEmptyLines: true });
-      const rows = result.data; // 二维数组
-
-      // 转换为 celldata
-      const celldata = [];
-      for (let r = 0; r < rows.length; r++) {
-        for (let c = 0; c < (rows[r] as any[]).length; c++) {
-          celldata.push({
-            r,
-            c,
-            v: (rows[r] as any[])[c], // 单元格的值
-          });
+  const handleCsv = useCallback(
+    async (url: string) => {
+      try {
+        const resp = await fetch(url, { credentials: 'omit' });
+        if (!resp.ok) {
+          log.error('Fetch failed:', resp.status, resp.statusText);
+          hideLoading();
+          return;
         }
+
+        const buf = await resp.arrayBuffer();
+
+        // 1. 取前 1KB 做采样
+        const sampleBytes = new Uint8Array(buf, 0, 1024);
+
+        // ⚡ 关键：先用 latin1 解码为单字节字符串
+        const sampleStr = new TextDecoder('latin1').decode(sampleBytes);
+
+        // 2. jschardet 检测
+        let detect = jschardet.detect(sampleStr);
+        let encoding = 'utf-8'; // 默认
+        if (detect.encoding) {
+          encoding = detect.encoding.toLowerCase();
+          if (encoding === 'gb2312') encoding = 'gbk'; // 常见别名修正
+        }
+        log.debug('检测到编码:', encoding);
+
+        // 3. 用真实编码解码整个文件
+        const decoder = new TextDecoder(encoding);
+        const csvText = decoder.decode(buf);
+
+        // 解析 CSV
+        const result = Papa.parse(csvText, { skipEmptyLines: true });
+        const rows = result.data; // 二维数组
+
+        // 转换为 celldata
+        const celldata = [];
+        for (let r = 0; r < rows.length; r++) {
+          for (let c = 0; c < (rows[r] as any[]).length; c++) {
+            celldata.push({
+              r,
+              c,
+              v: (rows[r] as any[])[c], // 单元格的值
+            });
+          }
+        }
+
+        const exportJson = [
+          {
+            celldata,
+            row: rows.length,
+            column: (rows[0] as any[]).length,
+          },
+        ];
+
+        log.debug('CSV parsed successfully in main thread');
+        createLuckysheet(exportJson, true);
+        hideLoading();
+      } catch (error) {
+        log.error('Failed to parse CSV:', error);
+        hideLoading();
       }
-
-      const exportJson = [
-        {
-          celldata,
-          row: rows.length,
-          column: (rows[0] as any[]).length,
-        },
-      ];
-
-      log.debug('CSV parsed successfully in main thread');
-      createLuckysheet(exportJson, true);
-      hideLoading();
-    } catch (error) {
-      log.error('Failed to parse CSV:', error);
-      hideLoading();
-    }
-  };
+    },
+    [hideLoading],
+  );
 
   // 处理 Excel 文件
-  const handleExcel = async (url: string) => {
-    try {
-      // LuckyExcelModule 已经是默认导出，使用 as any 忽略类型检查
-      const LuckyExcel = LuckyExcelModule as any;
+  const handleExcel = useCallback(
+    async (url: string) => {
+      try {
+        // LuckyExcelModule 已经是默认导出，使用 as any 忽略类型检查
+        const LuckyExcel = LuckyExcelModule as any;
 
-      const resp = await fetch(url, { credentials: 'omit' });
-      if (!resp.ok) {
-        log.error('Fetch failed:', resp.status, resp.statusText);
+        const resp = await fetch(url, { credentials: 'omit' });
+        if (!resp.ok) {
+          log.error('Fetch failed:', resp.status, resp.statusText);
+          hideLoading();
+          return;
+        }
+
+        const ab = await resp.arrayBuffer();
+        const data = new Uint8Array(ab);
+
+        LuckyExcel.transformExcelToLucky(data, (exportJson: any) => {
+          log.debug('Excel parsed successfully in main thread');
+          createLuckysheet(exportJson, false);
+          hideLoading();
+        });
+      } catch (error) {
+        log.error('Failed to parse Excel:', error);
         hideLoading();
-        return;
       }
-
-      const ab = await resp.arrayBuffer();
-      const data = new Uint8Array(ab);
-
-      LuckyExcel.transformExcelToLucky(data, (exportJson: any) => {
-        log.debug('Excel parsed successfully in main thread');
-        createLuckysheet(exportJson, false);
-        hideLoading();
-      });
-    } catch (error) {
-      log.error('Failed to parse Excel:', error);
-      hideLoading();
-    }
-  };
+    },
+    [hideLoading],
+  );
   const loadExternalResources = async () => {
     return new Promise((resolve) => {
       Promise.all([
@@ -391,7 +397,7 @@ export default function CellRender(props: renderProps) {
     };
 
     init();
-  }, [src, fileName, isCsv, hideLoading]);
+  }, [src, fileName, isCsv, hideLoading, handleCsv, handleExcel]);
 
   // 屏蔽 luckysheet 的 Ctrl+F 快捷键，在 document 层级捕获阶段拦截
   useEffect(() => {

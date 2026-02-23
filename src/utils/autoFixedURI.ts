@@ -33,6 +33,7 @@ export function autoFixedURI(url: string): string {
 
     // 编码基础 URL 路径部分（保留协议和域名）
     let encodedBaseUrl = baseUrl;
+    // eslint-disable-next-line no-useless-escape
     const protocolMatch = baseUrl.match(/^(https?:\/\/[^\/]+)(.*)$/);
 
     if (protocolMatch) {

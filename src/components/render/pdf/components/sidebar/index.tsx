@@ -230,7 +230,7 @@ const Siderbar = ({
         }
       }, 0);
     }
-  }, [visible]);
+  }, [activeTab, currentPage, visible]);
 
   // 处理大纲项点击
   const handleOutlineClick = async (item: OutlineItem) => {

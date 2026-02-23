@@ -23,6 +23,7 @@ import { log } from '@/utils';
 const PasswordModal = (props: {
   visible: boolean; // 密码弹窗显示状态
   errorMsg?: string; // 密码错误提示信息
+  // eslint-disable-next-line no-unused-vars
   onSubmit: (password: string) => void; // 密码提交回调
 }) => {
   const { visible, errorMsg, onSubmit } = props;
@@ -60,7 +61,7 @@ const PasswordModal = (props: {
     }
     setConfirmLoading(true);
     onSubmit(password);
-  }, []);
+  }, [onSubmit]);
 
   return (
     <Modal

@@ -45,6 +45,7 @@ declare module '*.less' {
 declare module 'tga-js' {
   export default class TgaLoader {
     constructor();
+    // eslint-disable-next-line no-unused-vars
     open(url: string, callback: () => void): void;
     getCanvas(): HTMLCanvasElement;
   }

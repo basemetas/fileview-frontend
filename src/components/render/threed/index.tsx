@@ -291,7 +291,7 @@ export default function ThreeDRender(props: renderProps) {
       mount.removeChild(renderer.domElement);
       renderer.dispose();
     };
-  }, [hideLoading, showLoadingError, url]);
+  }, [hideLoading, previewFileFormat, showLoadingError, url]);
 
   return (
     <div className={styles.pageContainer}>

@@ -18,6 +18,7 @@ import { renderProps } from '@/types';
 import styles from './index.module.scss';
 import { APP_NAME_EN, APP_HOME } from '@/constant/vars';
 
+// eslint-disable-next-line no-unused-vars
 const Footer = (_props: renderProps) => {
   return (
     <div className={styles.footer}>

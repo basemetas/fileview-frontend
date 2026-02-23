@@ -35,24 +35,12 @@ import {
   CloseOutlined,
   DownOutlined,
   UpOutlined,
-  EditOutlined,
-  SaveOutlined,
-  MenuOutlined,
 } from '@ant-design/icons';
-import { Input, Button, message, Dropdown } from 'antd';
+import { Input, Button, message } from 'antd';
 import styles from './index.module.scss';
 import { log, isMobile } from '@/utils';
 import AppContext from '@/context';
-import SignTools from './components/sign-tools';
-import {
-  EventType,
-  ToolType,
-  defaultBrushOptions,
-  defaultTextOptions,
-  defaultShapeOptions,
-  IMode,
-  IDisplayMode,
-} from '@/types';
+import { IDisplayMode } from '@/types';
 
 interface TopbarProps {
   maxPages?: number;
@@ -72,15 +60,15 @@ interface TopbarProps {
   containerRef?: React.RefObject<HTMLDivElement>;
   previewUrl?: string;
   displayMode?: IDisplayMode.SinglePage | IDisplayMode.DoublePage;
-  // eslint-disable-next-line no-unused-vars
+
   onDisplayModeChange?: (
+    // eslint-disable-next-line no-unused-vars
     mode: IDisplayMode.SinglePage | IDisplayMode.DoublePage,
   ) => void;
   // isMobile?: boolean;
 }
 
 const Topbar = ({
-  maxPages = 1,
   renderType = '',
   containerRef,
   previewUrl,
@@ -98,7 +86,7 @@ const Topbar = ({
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
 
-  const { permission, mode = IMode.normal } = useContext(AppContext);
+  const { permission } = useContext(AppContext);
 
   // 使用 useMemo 缓存 finalPermission，避免每次渲染创建新对象
   const finalPermission = useMemo(
