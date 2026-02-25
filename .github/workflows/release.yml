@@ -28,7 +28,7 @@ jobs:
           cache: npm
 
       - name: Install deps
-        run: npm ci
+        run: npm install
 
       # -------------------------
       # 读取 package.json version
