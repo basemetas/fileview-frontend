@@ -28,7 +28,13 @@ jobs:
           cache: npm
 
       - name: Install deps
-        run: npm install
+        run: |
+          # 清理可能损坏的依赖
+          rm -rf node_modules package-lock.json || true
+          # 重新安装所有依赖
+          npm install
+          # 强制安装 Rollup 平台特定依赖
+          npm install @rollup/rollup-linux-x64-gnu --no-save --force
 
       # -------------------------
       # 读取 package.json version
