@@ -207,7 +207,14 @@ const Entry = (props: IEntryProps) => {
       // 设置标题
       document.title = displayName || originalFileName;
     },
-    [displayName, mode, waitVerifyPassword, showLoadingError, watermark],
+    [
+      mode,
+      watermark,
+      isRoot,
+      displayName,
+      waitVerifyPassword,
+      showLoadingError,
+    ],
   );
 
   // debug 参数
