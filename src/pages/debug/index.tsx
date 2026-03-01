@@ -432,6 +432,11 @@ const FILE_GROUPS: FileGroup[] = [
     title: '压缩包/可执行文件/二进制文件',
     files: [
       {
+        name: '文件组合',
+        url: 'https://test.moqisoft.com/%E6%96%87%E4%BB%B6%E7%BB%84%E5%90%88.7z',
+        icon: <FileZipOutlined />,
+      },
+      {
         name: 'ZIP 文件',
         url: 'https://test.moqisoft.com/sample_archivea.zip',
         icon: <FileZipOutlined />,
