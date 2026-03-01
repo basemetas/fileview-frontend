@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useState, useCallback, Suspense } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  Suspense,
+  useContext,
+} from 'react';
 import { renderProps, IMode } from '@/types';
 import styles from './index.module.scss';
 import { useLoading } from '@/hooks/loading';
@@ -22,6 +28,7 @@ import { Table, Modal } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { getArchiveTree } from '@/api';
 import { FolderOutlined, FileOutlined } from '@ant-design/icons';
+import AppContext from '@/context';
 
 import { getArchiveRenderData, formatBytes, log } from '@/utils';
 import Entry from '@/components/entry';
@@ -43,12 +50,8 @@ interface DataType {
 }
 
 export default function ArchiveRender(props: renderProps) {
-  const {
-    originalFilePath = '',
-    src = '',
-    displayName = '',
-    mode = IMode.normal,
-  } = props;
+  const { originalFilePath = '', src = '', displayName = '' } = props;
+  const { permission, watermark, mode = IMode.normal } = useContext(AppContext);
   const { hideLoading, showLoadingError } = useLoading();
   const [fileName, setFileName] = useState('');
 
@@ -135,7 +138,12 @@ export default function ArchiveRender(props: renderProps) {
                       ></div>
                     }
                   >
-                    <Entry path={`${archiveFilePath}/${fullPath}`} />
+                    <Entry
+                      isRoot={false}
+                      path={`${archiveFilePath}/${fullPath}`}
+                      watermark={watermark}
+                      permission={permission}
+                    />
                   </Suspense>
                 ),
                 icon: null,

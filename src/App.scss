@@ -102,6 +102,7 @@ html *::-webkit-scrollbar { display: none; }  // 不建议用，慎用
     .ant-modal-close {
       right: 10px !important;
       top: 10px !important;
+      z-index: 1300 !important;
     }
     .ant-modal-close-x {
       background-color: rgba(0, 0, 0, 0.2);

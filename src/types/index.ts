@@ -101,6 +101,8 @@ export interface IRequestData {
   mode?: IMode;
   watermark?: WaterMarkProps;
   permission?: PermissionProps;
+  // 是否是根组件
+  isRoot?: boolean;
 }
 
 export interface WaterMarkProps {

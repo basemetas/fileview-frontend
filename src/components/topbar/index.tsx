@@ -43,6 +43,7 @@ import AppContext from '@/context';
 import { IDisplayMode } from '@/types';
 
 interface TopbarProps {
+  isRoot?: boolean;
   maxPages?: number;
   currentPage?: number;
   scale?: number;
@@ -69,6 +70,7 @@ interface TopbarProps {
 }
 
 const Topbar = ({
+  isRoot = true,
   renderType = '',
   containerRef,
   previewUrl,
@@ -266,7 +268,12 @@ const Topbar = ({
 
   return (
     <>
-      <div className={styles.topIconButton}>
+      <div
+        className={styles.topIconButton}
+        style={{
+          marginRight: isRoot ? '0' : '30px',
+        }}
+      >
         {/* 搜索按钮 */}
         {canSearch && (
           <Button

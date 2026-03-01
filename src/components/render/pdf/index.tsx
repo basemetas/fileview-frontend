@@ -61,6 +61,7 @@ const PdfViewer = (props: renderProps) => {
     displayName = '',
     mode = IMode.normal,
     renderType = '',
+    isRoot = true,
   } = props;
 
   // 页面数限制
@@ -1246,6 +1247,7 @@ const PdfViewer = (props: renderProps) => {
             </div>
 
             <Topbar
+              isRoot={isRoot}
               renderType={renderType}
               maxPages={pages.length}
               currentPage={currentPage}

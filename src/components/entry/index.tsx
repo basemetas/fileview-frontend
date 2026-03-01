@@ -33,6 +33,7 @@ const Entry = (props: IEntryProps) => {
     displayName,
     mode = IMode.normal,
     watermark,
+    isRoot = true,
   } = props;
   log.debug('Entry props', props);
   const [loadingError, setLoadingError] = useState<boolean>(false);
@@ -188,7 +189,7 @@ const Entry = (props: IEntryProps) => {
         >
           <ComponentLoader
             renderType={renderType}
-            isRoot={true}
+            isRoot={isRoot}
             fileName={originalFileName}
             displayName={displayName}
             type={renderType}
