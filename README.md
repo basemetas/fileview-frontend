@@ -22,7 +22,6 @@ https://github.com/BaseMetas/fileview
 
 ## 浏览器支持
 
-- IE 11
 - Chrome 60+
 - Firefox 60+
 - Safari 11+
