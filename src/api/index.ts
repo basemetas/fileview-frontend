@@ -33,6 +33,7 @@ const apiContext = getApiContext();
   "SUCCESS"：表示直接预览/转换地址生成成功
   "CONVERTING"：表示正在转换中
   "NOT_SUPPORTED"：表示不支持的文件类型
+  "NOT_FOUND"：表示文件未找到
   "FAILED"：表示直接预览/转换地址生成失败
   "PASSWORD_REQUIRED": 表示需要密码
   "PASSWORD_INCORRECT": 表示密码错误
@@ -40,6 +41,7 @@ const apiContext = getApiContext();
 const FINISHED_STATUS_ENUM = [
   'FAILED',
   'NOT_SUPPORTED',
+  'NOT_FOUND',
   'SUCCESS',
   'PASSWORD_REQUIRED',
   'PASSWORD_INCORRECT',
