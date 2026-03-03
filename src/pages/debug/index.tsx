@@ -436,6 +436,12 @@ const FILE_GROUPS: FileGroup[] = [
         url: 'https://test.moqisoft.com/%E6%96%87%E4%BB%B6%E7%BB%84%E5%90%88.7z',
         icon: <FileZipOutlined />,
       },
+      // https://test.moqisoft.com/%E5%9B%BE.rar
+      {
+        name: '打不开的 RAR 文件',
+        url: 'https://test.moqisoft.com/%E5%9B%BE.rar',
+        icon: <FileZipOutlined />,
+      },
       {
         name: 'ZIP 文件',
         url: 'https://test.moqisoft.com/sample_archivea.zip',
