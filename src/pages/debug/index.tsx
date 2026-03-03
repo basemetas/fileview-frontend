@@ -438,9 +438,16 @@ const FILE_GROUPS: FileGroup[] = [
       },
       // https://test.moqisoft.com/%E5%9B%BE.rar
       {
-        name: '打不开的 RAR 文件',
+        name: 'RAR5 文件',
         url: 'https://test.moqisoft.com/%E5%9B%BE.rar',
         icon: <FileZipOutlined />,
+      },
+      // https://test.moqisoft.com/%E5%9B%BE-mima.rar
+      {
+        name: 'RAR5 文件',
+        url: 'https://test.moqisoft.com/%E5%9B%BE-mima.rar',
+        icon: <FileZipOutlined />,
+        badge: '加密(密码123)',
       },
       {
         name: 'ZIP 文件',
