@@ -20,7 +20,8 @@
     "format:check": "prettier --config .prettierrc.json --check \"src/**/*.{ts,tsx,js,jsx,css,scss,json,md}\"",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
-    "postinstall": "patch-package && node scripts/transform-worker.cjs"
+    "postinstall": "patch-package && node scripts/transform-worker.cjs",
+    "download:pdfjs-v5": "node scripts/download-pdfjs-v5.cjs"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.2",

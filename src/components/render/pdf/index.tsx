@@ -16,14 +16,11 @@
 
 import { renderProps, IMode } from '@/types';
 import { useEffect, useRef, useState, useCallback, useContext } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
-import 'pdfjs-dist/web/pdf_viewer.css';
 import styles from './index.module.scss';
 import Page from './components/page';
 import Siderbar from './components/sidebar';
 import Topbar from '@/components/topbar';
 import { useLoading } from '@/hooks/loading';
-import pdfWorkerUrl from './pdf-worker';
 import { Pagination, Select, Button } from 'antd';
 import {
   ZoomInOutlined,
@@ -41,9 +38,8 @@ import {
 import AppContext from '@/context';
 import { IDisplayMode } from '@/types';
 import classNames from 'classnames';
-
-// 设置 PDF.js worker URL
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+// 导入 PDF 适配器系统
+import { usePdfAdapter } from './hooks';
 
 // 扩展 PageInfo 接口以包含文本内容
 interface PageInfo {
@@ -71,6 +67,9 @@ const PdfViewer = (props: renderProps) => {
     zoom: allowZoom = true,
     thumbnail: allowThumbnail = true,
   } = permission;
+
+  // 使用 PDF 适配器
+  const { adapter, version: adapterVersion } = usePdfAdapter();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pageCanvasRef = useRef<HTMLDivElement>(null); // 指向 .pageCanvas，用于滚轮缩放
@@ -146,16 +145,25 @@ const PdfViewer = (props: renderProps) => {
     };
   }, []);
 
+  // 使用 ref 存储 pdfInstance，用于清理函数
+  const pdfInstanceRef = useRef<any | null>(null);
+
   // 加载PDF文档
-  let pdfInstance: any | null = null;
   const loadPdf = useCallback(
     async (password?: string) => {
-      log.debug('Loading PDF...');
-      const options = { url: src, password };
-      try {
-        const loadingTask = pdfjsLib.getDocument(options);
+      // 等待适配器加载完成
+      if (!adapter) {
+        log.debug('等待 PDF 适配器加载...');
+        return;
+      }
 
-        // pdfjs-dist 2.4.456: 监听密码事件
+      log.debug('Loading PDF...');
+      log.debug(`使用 PDF.js ${adapterVersion}`);
+      const options = { url: src!, password };
+      try {
+        const loadingTask = adapter.getDocument(options);
+
+        // 监听密码事件
         loadingTask.onPassword = (
           // eslint-disable-next-line no-unused-vars
           _updatePassword: (password: string) => void,
@@ -177,8 +185,8 @@ const PdfViewer = (props: renderProps) => {
           // 注意: 这里不调用 updatePassword，等待用户输入
         };
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        pdfInstance = await loadingTask.promise;
+        const pdfInstance = await loadingTask.promise;
+        pdfInstanceRef.current = pdfInstance; // 存储到 ref
         setPdfDoc(pdfInstance);
 
         // 根据 pageLimit 限制渲染页数
@@ -190,7 +198,7 @@ const PdfViewer = (props: renderProps) => {
         const pageInfos: PageInfo[] = [];
         for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
           const page = await pdfInstance.getPage(pageNum);
-          const viewport = page.getViewport({ scale: 1.0 }); // pdfjs-dist 2.x
+          const viewport = page.getViewport({ scale: 1.0 });
 
           // 获取页面文本内容
           let textContent: any | undefined;
@@ -235,7 +243,7 @@ const PdfViewer = (props: renderProps) => {
 
         hideLoading();
       } catch (error: any) {
-        // pdfjs-dist 2.4.456: 详细日志分析
+        // 详细日志分析
         log.debug(
           'Caught error:',
           error,
@@ -261,8 +269,8 @@ const PdfViewer = (props: renderProps) => {
 
           // 安全获取 PasswordResponses 常量
           const incorrectCode =
-            pdfjsLib.PasswordResponses?.INCORRECT_PASSWORD ?? 2;
-          const needCode = pdfjsLib.PasswordResponses?.NEED_PASSWORD ?? 1;
+            adapter.PasswordResponses?.INCORRECT_PASSWORD ?? 2;
+          const needCode = adapter.PasswordResponses?.NEED_PASSWORD ?? 1;
 
           if (error?.code === incorrectCode) {
             log.debug('密码错误');
@@ -278,7 +286,15 @@ const PdfViewer = (props: renderProps) => {
         }
       }
     },
-    [waitVerifyPassword, showLoading, src, pageLimit, hideLoading],
+    [
+      adapter,
+      adapterVersion,
+      waitVerifyPassword,
+      showLoading,
+      src,
+      pageLimit,
+      hideLoading,
+    ],
   );
 
   // 缓存 handlePasswordSubmit，避免每次渲染创建新函数
@@ -302,11 +318,15 @@ const PdfViewer = (props: renderProps) => {
     loadPdf();
 
     return () => {
-      if (pdfInstance) {
-        pdfInstance.destroy();
+      // 清理时销毁 pdf 实例
+      if (pdfInstanceRef.current) {
+        pdfInstanceRef.current.destroy();
+        pdfInstanceRef.current = null;
       }
     };
-  }, [loadPdf, pdfInstance, src]); // 移除scale依赖，避免重复加载
+    // 注意：只依赖 src 和 adapter，避免重复加载
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src, adapter]);
 
   // 初始化搜索控制器
   useEffect(() => {

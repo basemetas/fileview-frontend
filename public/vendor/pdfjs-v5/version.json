@@ -1,0 +1,10 @@
+{
+  "version": "5.5.207",
+  "downloadDate": "2026-03-17T09:33:03.997Z",
+  "files": [
+    "pdf.js",
+    "pdf.worker.js",
+    "pdf_viewer.js",
+    "pdf_viewer.css"
+  ]
+}
