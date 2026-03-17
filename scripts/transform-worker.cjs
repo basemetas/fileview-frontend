@@ -3,10 +3,10 @@ const path = require('path');
 const babel = require('@babel/core');
 
 const sourceFile = path.join(__dirname, '../node_modules/pdfjs-dist/build/pdf.worker.min.js');
-const inputFile = path.join(__dirname, '../public/vendor/pdf.worker.original.js');
-const outputFile = path.join(__dirname, '../public/vendor/pdf.worker.min.js');
+const inputFile = path.join(__dirname, '../public/vendor/pdfjs-v2/pdf.worker.original.js');
+const outputFile = path.join(__dirname, '../public/vendor/pdfjs-v2/pdf.worker.min.js');
 
-// 确保 vendor 目录存在
+// 确保 vendor/pdfjs-v2 目录存在
 const vendorDir = path.dirname(inputFile);
 if (!fs.existsSync(vendorDir)) {
   fs.mkdirSync(vendorDir, { recursive: true });

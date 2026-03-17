@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const babel = require('@babel/core');
 
-const inputFile = path.join(__dirname, '../public/vendor/pdf.worker.original.js');
-const outputFile = path.join(__dirname, '../public/vendor/pdf.worker.min.js');
+const inputFile = path.join(__dirname, '../public/vendor/pdfjs-v2/pdf.worker.original.js');
+const outputFile = path.join(__dirname, '../public/vendor/pdfjs-v2/pdf.worker.min.js');
 
 console.log('转换 PDF.js Worker 以兼容 Chrome 60...');
 

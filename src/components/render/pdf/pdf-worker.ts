@@ -18,6 +18,6 @@
 // Chrome 60 兼容：使用本地静态 worker 文件
 import { getAppContext } from '@/utils';
 const webPrefix = getAppContext() + '/preview';
-const workerUrl = webPrefix + '/vendor/pdf.worker.min.js';
+const workerUrl = webPrefix + '/vendor/pdfjs-v2/pdf.worker.min.js';
 
 export default workerUrl;
