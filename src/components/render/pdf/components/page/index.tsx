@@ -62,6 +62,7 @@ interface PageComponentProps {
   pageInfo: PageInfo;
   scale: number;
   rotation?: number;
+  needsViewportRotation?: boolean; // 是否需要旋转 viewport（用于横向页面）
   isPhone: boolean;
   isPortrait?: boolean;
   containerWidth: number;
@@ -75,6 +76,7 @@ const Page = (props: PageComponentProps) => {
   const {
     pageInfo,
     scale,
+    needsViewportRotation = false,
     isPhone,
     renderScale = 1.0,
     pdfDoc,
@@ -289,8 +291,6 @@ const Page = (props: PageComponentProps) => {
           }
         }
       }, 0);
-
-      log.debug(`TextLayerBuilder 渲染完成: 第${pageInfo.pageNum}页`);
     } catch (error) {
       log.error('TextLayerBuilder 渲染失败:', error);
     }
@@ -312,7 +312,11 @@ const Page = (props: PageComponentProps) => {
   ]);
 
   // 计算 0 旋转下的尺寸
-  const baseViewport = pageInfo.viewport.clone({ scale: 1.0, rotation: 0 });
+  // 如果需要旋转 viewport（横向页面），则应用 90 度旋转
+  const baseViewport = pageInfo.viewport.clone({
+    scale: 1.0,
+    rotation: needsViewportRotation ? 90 : 0,
+  });
   const displayWidth = baseViewport.width * scale;
   const displayHeight = baseViewport.height * scale;
 

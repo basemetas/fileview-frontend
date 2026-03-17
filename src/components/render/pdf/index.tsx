@@ -99,6 +99,7 @@ const PdfViewer = (props: renderProps) => {
   const [displayMode, setDisplayMode] = useState<
     IDisplayMode.SinglePage | IDisplayMode.DoublePage
   >(IDisplayMode.SinglePage); // 显示模式：单页/双页
+  const [autoRotateLandscape] = useState<boolean>(true); // 自动旋转横向页面
 
   // 搜索相关状态
   const searchControllerRef = useRef<SearchController | null>(null);
@@ -184,7 +185,6 @@ const PdfViewer = (props: renderProps) => {
         const totalPages = pdfInstance.numPages;
         const maxPages =
           pageLimit > 0 ? Math.min(pageLimit, totalPages) : totalPages;
-        log.debug(`总页数: ${totalPages}, 限制渲染: ${maxPages} 页`);
 
         // 预计算页面的viewport信息和文本内容，只处理允许的页数
         const pageInfos: PageInfo[] = [];
@@ -364,6 +364,7 @@ const PdfViewer = (props: renderProps) => {
 
         // 获取设备像素比
         const pixelRatio = window.devicePixelRatio || 1;
+
         // 使用捕获的 targetScale 计算 viewport
         const viewport = page.getViewport({ scale: targetScale });
 
@@ -395,6 +396,10 @@ const PdfViewer = (props: renderProps) => {
         currentRenderScaleRef.current.set(pageNum, targetScale);
 
         if (canvas.width !== newWidth || canvas.height !== newHeight) {
+          log.debug(
+            `[页面渲染] 第 ${pageNum} 页 Canvas 尺寸变化`,
+            `从 ${canvas.width}x${canvas.height} → ${newWidth}x${newHeight}`,
+          );
           canvas.width = newWidth;
           canvas.height = newHeight;
           canvas.style.width = '100%';
@@ -447,6 +452,13 @@ const PdfViewer = (props: renderProps) => {
 
     // 同步更新 scaleRef
     scaleRef.current = scale;
+
+    // [DEBUG] Scale 变化日志
+    log.debug(
+      `[Scale 变化] scale: ${scale}`,
+      `displayMode: ${displayMode}`,
+      `pages.length: ${pages.length}`,
+    );
 
     // 清除之前的防抖计时器
     if (scaleDebounceRef.current) {
@@ -909,6 +921,12 @@ const PdfViewer = (props: renderProps) => {
       // 保存当前 scale，用于预填充
       const oldScale = scale;
 
+      // [DEBUG] 显示模式切换日志
+      log.debug(
+        `[模式切换] 从 ${displayMode} 切换到 ${realDisplayMode}`,
+        `当前 scale: ${oldScale}`,
+      );
+
       // 1. 切换模式前先清空渲染缓存
       // 因为模式切换会导致 Page 组件及其内部 Canvas 重新挂载，旧的渲染内容会丢失
       renderedPagesRef.current.clear();
@@ -921,6 +939,14 @@ const PdfViewer = (props: renderProps) => {
 
       // 2. 切换模式后，立即按照新模式重算比例
       const fitScale = calculateFitScale('width', realDisplayMode);
+
+      // [DEBUG] 模式切换时的 fitScale 计算
+      log.debug(
+        `[模式切换] 新模式下的 fitScale 计算`,
+        `realDisplayMode: ${realDisplayMode}`,
+        `fitScale: ${fitScale.toFixed(4)}`,
+      );
+
       let newScale;
 
       if (realDisplayMode === IDisplayMode.DoublePage) {
@@ -934,7 +960,7 @@ const PdfViewer = (props: renderProps) => {
       setScale(newScale);
       log.debug(`模式切换为 ${realDisplayMode}，应用缩放比例: ${newScale}`);
     },
-    [calculateFitScale, scale, pages],
+    [calculateFitScale, scale, pages, displayMode],
   );
 
   // 处理缩放选择
@@ -1300,14 +1326,32 @@ const PdfViewer = (props: renderProps) => {
                     const dw = baseViewport.width * scale;
                     const dh = baseViewport.height * scale;
 
+                    // 判断页面是否为横向（宽高比 > 1.2，避免误判正方形页面）
+                    const aspectRatio =
+                      baseViewport.width / baseViewport.height;
+                    const isLandscape = aspectRatio > 1.2;
+
                     // 判断是否处于 90/270 度旋转状态
                     const is90 = rotation % 180 !== 0;
 
-                    // 计算旋转后的布局宽高
-                    const layoutWidth = is90 ? dh : dw;
-                    const layoutHeight = is90 ? dw : dh;
+                    // 计算布局宽高
+                    // 如果启用自动旋转横向页面，且当前页面是横向的，且没有手动旋转，则交换宽高
+                    let layoutWidth = dw;
+                    let layoutHeight = dh;
+                    const needsViewportRotation =
+                      autoRotateLandscape && isLandscape && rotation === 0;
 
-                    // 变换逻辑：仅处理旋转
+                    if (needsViewportRotation) {
+                      // 交换宽高
+                      layoutWidth = dh;
+                      layoutHeight = dw;
+                    } else if (is90) {
+                      // 手动旋转时交换宽高
+                      layoutWidth = dh;
+                      layoutHeight = dw;
+                    }
+
+                    // 变换逻辑：只对手动旋转应用 CSS transform
                     const transform =
                       rotation !== 0 ? `rotate(${rotation}deg)` : '';
 
@@ -1347,6 +1391,7 @@ const PdfViewer = (props: renderProps) => {
                             pageInfo={pageInfo}
                             scale={scale}
                             rotation={rotation}
+                            needsViewportRotation={needsViewportRotation}
                             isPhone={isPhone}
                             containerWidth={
                               containerRef.current?.clientWidth ||
@@ -1397,11 +1442,32 @@ const PdfViewer = (props: renderProps) => {
                           });
                           const dw = baseViewport.width * scale;
                           const dh = baseViewport.height * scale;
-                          const is90 = rotation % 180 !== 0;
 
-                          const layoutWidth = is90 ? dh : dw;
-                          const layoutHeight = is90 ? dw : dh;
+                          // 判断页面是否为横向（宽高比 > 1.2）
+                          const aspectRatio =
+                            baseViewport.width / baseViewport.height;
+                          const isLandscape = aspectRatio > 1.2;
 
+                          // 计算布局宽高
+                          // 如果启用自动旋转横向页面，且当前页面是横向的，且没有手动旋转，则交换宽高
+                          let layoutWidth = dw;
+                          let layoutHeight = dh;
+                          const needsViewportRotation =
+                            autoRotateLandscape &&
+                            isLandscape &&
+                            rotation === 0;
+
+                          if (needsViewportRotation) {
+                            // 交换宽高
+                            layoutWidth = dh;
+                            layoutHeight = dw;
+                          } else if (rotation % 180 !== 0) {
+                            // 手动旋转时交换宽高
+                            layoutWidth = dh;
+                            layoutHeight = dw;
+                          }
+
+                          // 变换逻辑：只对手动旋转应用 CSS transform
                           const transform =
                             rotation !== 0 ? `rotate(${rotation}deg)` : '';
 
@@ -1440,6 +1506,7 @@ const PdfViewer = (props: renderProps) => {
                                   pageInfo={pageInfo}
                                   scale={scale}
                                   rotation={rotation}
+                                  needsViewportRotation={needsViewportRotation}
                                   isPhone={isPhone}
                                   containerWidth={
                                     containerRef.current?.clientWidth ||
