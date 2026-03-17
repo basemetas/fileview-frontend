@@ -368,6 +368,7 @@ const PdfViewer = (props: renderProps) => {
         // 使用捕获的 targetScale 计算 viewport
         const viewport = page.getViewport({ scale: targetScale });
 
+        // 计算高分辨率 canvas 尺寸
         const newWidth = Math.floor(viewport.width * pixelRatio);
         const newHeight = Math.floor(viewport.height * pixelRatio);
 
@@ -380,16 +381,19 @@ const PdfViewer = (props: renderProps) => {
         })!;
 
         // 2. 在离屏 canvas 上配置并渲染
-        scratchContext.save();
-        scratchContext.scale(pixelRatio, pixelRatio);
+        // 注意：先填充白色背景，然后使用变换矩阵让 PDF.js 正确渲染
         scratchContext.fillStyle = '#ffffff';
-        scratchContext.fillRect(0, 0, viewport.width, viewport.height);
+        scratchContext.fillRect(0, 0, newWidth, newHeight);
+
+        // 创建高分辨率的 viewport 用于渲染
+        const renderViewport = page.getViewport({
+          scale: targetScale * pixelRatio,
+        });
 
         await page.render({
           canvasContext: scratchContext,
-          viewport: viewport,
+          viewport: renderViewport,
         }).promise;
-        scratchContext.restore();
 
         // 3. 渲染完成后，再替换主 canvas 的内容
         // 只有在渲染成功后才更新 scale 记录
@@ -402,9 +406,11 @@ const PdfViewer = (props: renderProps) => {
           );
           canvas.width = newWidth;
           canvas.height = newHeight;
-          canvas.style.width = '100%';
-          canvas.style.height = '100%';
         }
+
+        // 设置 canvas 显示尺寸为 viewport 尺寸（CSS 尺寸）
+        canvas.style.width = `${viewport.width}px`;
+        canvas.style.height = `${viewport.height}px`;
 
         const mainContext = canvas.getContext('2d', { alpha: false })!;
         mainContext.drawImage(scratchCanvas, 0, 0);
@@ -1401,7 +1407,7 @@ const PdfViewer = (props: renderProps) => {
                             renderScale={
                               currentRenderScaleRef.current.get(
                                 pageInfo.pageNum,
-                              ) || 1.0
+                              ) || scale
                             }
                             highlightRects={highlightRects}
                             currentMatchIndex={currentSearchIndex}
