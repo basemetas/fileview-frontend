@@ -190,7 +190,22 @@ const PdfViewer = (props: renderProps) => {
         const pageInfos: PageInfo[] = [];
         for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
           const page = await pdfInstance.getPage(pageNum);
-          const viewport = page.getViewport({ scale: 1.0 }); // pdfjs-dist 2.x
+
+          // 获取原始 viewport（scale=1.0）
+          const originalViewport = page.getViewport({ scale: 1.0 });
+
+          // 判断页面是否为横向（宽高比 > 1.2，避免误判正方形页面）
+          const aspectRatio = originalViewport.width / originalViewport.height;
+          const isLandscape = aspectRatio > 1.2;
+
+          // 如果启用自动旋转且页面是横向的，则应用 90 度旋转
+          let viewport = originalViewport;
+          if (autoRotateLandscape && isLandscape) {
+            viewport = page.getViewport({
+              scale: 1.0,
+              rotation: 90,
+            });
+          }
 
           // 获取页面文本内容
           let textContent: any | undefined;
@@ -1324,34 +1339,18 @@ const PdfViewer = (props: renderProps) => {
               (() => {
                 if (displayMode === 'single') {
                   return pages.map((pageInfo) => {
-                    // 计算原始尺寸
-                    const baseViewport = pageInfo.viewport.clone({
-                      scale: 1.0,
-                      rotation: 0,
-                    });
+                    // viewport 已经在加载时处理过，横向页面已旋转
+                    const baseViewport = pageInfo.viewport.clone({ scale: 1.0 });
                     const dw = baseViewport.width * scale;
                     const dh = baseViewport.height * scale;
 
-                    // 判断页面是否为横向（宽高比 > 1.2，避免误判正方形页面）
-                    const aspectRatio =
-                      baseViewport.width / baseViewport.height;
-                    const isLandscape = aspectRatio > 1.2;
-
-                    // 判断是否处于 90/270 度旋转状态
+                    // 判断是否处于 90/270 度旋转状态（手动旋转）
                     const is90 = rotation % 180 !== 0;
 
                     // 计算布局宽高
-                    // 如果启用自动旋转横向页面，且当前页面是横向的，且没有手动旋转，则交换宽高
                     let layoutWidth = dw;
                     let layoutHeight = dh;
-                    const needsViewportRotation =
-                      autoRotateLandscape && isLandscape && rotation === 0;
-
-                    if (needsViewportRotation) {
-                      // 交换宽高
-                      layoutWidth = dh;
-                      layoutHeight = dw;
-                    } else if (is90) {
+                    if (is90) {
                       // 手动旋转时交换宽高
                       layoutWidth = dh;
                       layoutHeight = dw;
@@ -1397,7 +1396,6 @@ const PdfViewer = (props: renderProps) => {
                             pageInfo={pageInfo}
                             scale={scale}
                             rotation={rotation}
-                            needsViewportRotation={needsViewportRotation}
                             isPhone={isPhone}
                             containerWidth={
                               containerRef.current?.clientWidth ||
@@ -1442,32 +1440,15 @@ const PdfViewer = (props: renderProps) => {
                         }}
                       >
                         {row.map((pageInfo) => {
-                          const baseViewport = pageInfo.viewport.clone({
-                            scale: 1.0,
-                            rotation: 0,
-                          });
+                          // viewport 已经在加载时处理过，横向页面已旋转
+                          const baseViewport = pageInfo.viewport.clone({ scale: 1.0 });
                           const dw = baseViewport.width * scale;
                           const dh = baseViewport.height * scale;
 
-                          // 判断页面是否为横向（宽高比 > 1.2）
-                          const aspectRatio =
-                            baseViewport.width / baseViewport.height;
-                          const isLandscape = aspectRatio > 1.2;
-
                           // 计算布局宽高
-                          // 如果启用自动旋转横向页面，且当前页面是横向的，且没有手动旋转，则交换宽高
                           let layoutWidth = dw;
                           let layoutHeight = dh;
-                          const needsViewportRotation =
-                            autoRotateLandscape &&
-                            isLandscape &&
-                            rotation === 0;
-
-                          if (needsViewportRotation) {
-                            // 交换宽高
-                            layoutWidth = dh;
-                            layoutHeight = dw;
-                          } else if (rotation % 180 !== 0) {
+                          if (rotation % 180 !== 0) {
                             // 手动旋转时交换宽高
                             layoutWidth = dh;
                             layoutHeight = dw;
@@ -1512,7 +1493,6 @@ const PdfViewer = (props: renderProps) => {
                                   pageInfo={pageInfo}
                                   scale={scale}
                                   rotation={rotation}
-                                  needsViewportRotation={needsViewportRotation}
                                   isPhone={isPhone}
                                   containerWidth={
                                     containerRef.current?.clientWidth ||
