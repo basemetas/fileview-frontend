@@ -1,7 +1,7 @@
 /* eslint-disable no-useless-escape */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import legacy from '@vitejs/plugin-legacy';
 import { fileURLToPath, URL } from 'node:url';
@@ -81,7 +81,7 @@ function getLocalIPv4(): string {
 const PORT = 8700;
 
 // 压缩 public/vendor 文件的插件
-function compressVendorFiles() {
+function compressVendorFiles(): Plugin {
   return {
     name: 'compress-vendor-files',
     async closeBundle() {
@@ -201,7 +201,7 @@ export default defineConfig(({ command }) => ({
       ],
     }),
     // 在构建时压缩 vendor 文件
-    command === 'build' && compressVendorFiles(),
+    ...(command === 'build' ? [compressVendorFiles()] : []),
   ].filter(Boolean),
   css: {
     modules: {
@@ -245,7 +245,7 @@ export default defineConfig(({ command }) => ({
       },
       // 本地静态资源：直接访问本地 fonts 和 vendor，跳过代理
       '^/.+/(fonts|vendor)': {
-        bypass(req, res, options) {
+        bypass(req) {
           const path = req.url || '';
           // 提取 /fonts 或 /vendor 路径
           const match = path.match(/\/(fonts|vendor)\/.+$/);
@@ -268,7 +268,7 @@ export default defineConfig(({ command }) => ({
         chunkFileNames: 'js/[name]-[hash].js',
         entryFileNames: 'js/[name]-[hash].js',
         assetFileNames: (assetInfo) => {
-          if (/\.(css|scss)$/.test(assetInfo.name || '')) {
+          if (/\.(css|scss)$/.test(assetInfo.names?.[0] || '')) {
             return 'css/[name]-[hash].[ext]';
           }
           return 'assets/[name]-[hash].[ext]';
