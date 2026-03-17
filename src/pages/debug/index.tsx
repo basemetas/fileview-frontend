@@ -71,6 +71,12 @@ const FILE_GROUPS: FileGroup[] = [
         },
         icon: <FilePdfOutlined />,
       },
+      // https://test.moqisoft.com/Doc1.1.pdf
+      {
+        name: 'PDF 方向异常',
+        url: 'https://test.moqisoft.com/Doc1.1.pdf',
+        icon: <FilePdfOutlined />,
+      },
     ],
   },
   {
