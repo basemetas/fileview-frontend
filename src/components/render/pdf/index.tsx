@@ -1433,7 +1433,6 @@ const PdfViewer = (props: renderProps) => {
                           display: 'flex',
                           justifyContent: 'center',
                           alignItems: 'flex-start',
-                          gap: '20px',
                           margin: '20px auto',
                           width: 'max-content',
                           minWidth: '100%',
@@ -1477,6 +1476,7 @@ const PdfViewer = (props: renderProps) => {
                                 justifyContent: 'center',
                                 position: 'relative',
                                 overflow: 'visible',
+                                marginLeft: row.indexOf(pageInfo) > 0 ? '20px' : '0',
                               }}
                             >
                               <div
