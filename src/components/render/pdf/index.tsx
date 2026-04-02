@@ -196,21 +196,28 @@ const PdfViewer = (props: renderProps) => {
 
         // 预计算页面的viewport信息和文本内容，只处理允许的页数
         const pageInfos: PageInfo[] = [];
+
+        // 先获取第一页的方向作为基准
+        const firstPage = await pdfInstance.getPage(1);
+        const firstViewport = firstPage.getViewport({ scale: 1.0 });
+        const firstAspectRatio = firstViewport.width / firstViewport.height;
+        const firstIsLandscape = firstAspectRatio > 1.2;
+
         for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
           const page = await pdfInstance.getPage(pageNum);
 
           // 获取原始 viewport（scale=1.0）
           const originalViewport = page.getViewport({ scale: 1.0 });
 
-          // 判断页面是否为横向（宽高比 > 1.2，避免误判正方形页面）
+          // 判断当前页面方向
           const aspectRatio = originalViewport.width / originalViewport.height;
           const isLandscape = aspectRatio > 1.2;
 
-          // 如果启用自动旋转且页面是横向的，则应用 90 度旋转
-          const viewport =
-            autoRotateLandscape && isLandscape
-              ? page.getViewport({ scale: 1.0, rotation: 90 })
-              : originalViewport;
+          // 如果当前页面方向与第一页不一致，说明数据异常，需要旋转
+          const needsRotation = isLandscape !== firstIsLandscape;
+          const viewport = needsRotation
+            ? page.getViewport({ scale: 1.0, rotation: 90 })
+            : originalViewport;
 
           // 获取页面文本内容
           let textContent: any | undefined;
