@@ -98,7 +98,7 @@ const PdfViewer = (props: renderProps) => {
   const [displayMode, setDisplayMode] = useState<
     IDisplayMode.SinglePage | IDisplayMode.DoublePage
   >(IDisplayMode.SinglePage); // 显示模式：单页/双页
-  const [autoRotateLandscape] = useState<boolean>(true); // 自动旋转横向页面
+  // const [autoRotateLandscape] = useState<boolean>(true); // 自动旋转横向页面
 
   // 搜索相关状态
   const searchControllerRef = useRef<SearchController | null>(null);
@@ -312,7 +312,6 @@ const PdfViewer = (props: renderProps) => {
       src,
       pageLimit,
       hideLoading,
-      autoRotateLandscape,
       showLoadingError,
     ],
   );
