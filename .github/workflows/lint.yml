@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main # 或你希望触发的分支
+      - develop
   pull_request:
     branches:
       - main # PR 时也可以触发
