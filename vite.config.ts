@@ -1,5 +1,4 @@
 /* eslint-disable no-useless-escape */
-/* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
