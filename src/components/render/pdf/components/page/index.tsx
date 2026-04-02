@@ -289,8 +289,6 @@ const Page = (props: PageComponentProps) => {
           }
         }
       }, 0);
-
-      log.debug(`TextLayerBuilder 渲染完成: 第${pageInfo.pageNum}页`);
     } catch (error) {
       log.error('TextLayerBuilder 渲染失败:', error);
     }
@@ -311,15 +309,17 @@ const Page = (props: PageComponentProps) => {
     finalPermission.copy,
   ]);
 
-  // 计算 0 旋转下的尺寸
-  const baseViewport = pageInfo.viewport.clone({ scale: 1.0, rotation: 0 });
+  // 计算尺寸
+  // viewport 已经在加载时处理过（横向页面已旋转）
+  const baseViewport = pageInfo.viewport.clone({ scale: 1.0 });
+
   const displayWidth = baseViewport.width * scale;
   const displayHeight = baseViewport.height * scale;
 
   const renderWidth = baseViewport.width * renderScale;
   const renderHeight = baseViewport.height * renderScale;
 
-  // 容器始终基于 0 旋转尺寸
+  // 容器尺寸使用旋转后的 viewport
   const finalWidth = displayWidth;
   const finalHeight = displayHeight;
 

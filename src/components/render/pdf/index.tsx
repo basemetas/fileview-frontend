@@ -16,14 +16,11 @@
 
 import { renderProps, IMode } from '@/types';
 import { useEffect, useRef, useState, useCallback, useContext } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
-import 'pdfjs-dist/web/pdf_viewer.css';
 import styles from './index.module.scss';
 import Page from './components/page';
 import Siderbar from './components/sidebar';
 import Topbar from '@/components/topbar';
 import { useLoading } from '@/hooks/loading';
-import pdfWorkerUrl from './pdf-worker';
 import { Pagination, Select, Button } from 'antd';
 import {
   ZoomInOutlined,
@@ -41,9 +38,8 @@ import {
 import AppContext from '@/context';
 import { IDisplayMode } from '@/types';
 import classNames from 'classnames';
-
-// 设置 PDF.js worker URL
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+// 导入 PDF 适配器系统
+import { usePdfAdapter } from './hooks';
 
 // 扩展 PageInfo 接口以包含文本内容
 interface PageInfo {
@@ -72,6 +68,9 @@ const PdfViewer = (props: renderProps) => {
     thumbnail: allowThumbnail = true,
   } = permission;
 
+  // 使用 PDF 适配器
+  const { adapter, version: adapterVersion } = usePdfAdapter();
+
   const containerRef = useRef<HTMLDivElement>(null);
   const pageCanvasRef = useRef<HTMLDivElement>(null); // 指向 .pageCanvas，用于滚轮缩放
   const [pdfDoc, setPdfDoc] = useState<any | null>(null);
@@ -99,6 +98,7 @@ const PdfViewer = (props: renderProps) => {
   const [displayMode, setDisplayMode] = useState<
     IDisplayMode.SinglePage | IDisplayMode.DoublePage
   >(IDisplayMode.SinglePage); // 显示模式：单页/双页
+  const [autoRotateLandscape] = useState<boolean>(true); // 自动旋转横向页面
 
   // 搜索相关状态
   const searchControllerRef = useRef<SearchController | null>(null);
@@ -145,16 +145,25 @@ const PdfViewer = (props: renderProps) => {
     };
   }, []);
 
+  // 使用 ref 存储 pdfInstance，用于清理函数
+  const pdfInstanceRef = useRef<any | null>(null);
+
   // 加载PDF文档
-  let pdfInstance: any | null = null;
   const loadPdf = useCallback(
     async (password?: string) => {
-      log.debug('Loading PDF...');
-      const options = { url: src, password };
-      try {
-        const loadingTask = pdfjsLib.getDocument(options);
+      // 等待适配器加载完成
+      if (!adapter) {
+        log.debug('等待 PDF 适配器加载...');
+        return;
+      }
 
-        // pdfjs-dist 2.4.456: 监听密码事件
+      log.debug('Loading PDF...');
+      log.debug(`使用 PDF.js ${adapterVersion}`);
+      const options = { url: src!, password };
+      try {
+        const loadingTask = adapter.getDocument(options);
+
+        // 监听密码事件
         loadingTask.onPassword = (
           // eslint-disable-next-line no-unused-vars
           _updatePassword: (password: string) => void,
@@ -176,21 +185,39 @@ const PdfViewer = (props: renderProps) => {
           // 注意: 这里不调用 updatePassword，等待用户输入
         };
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        pdfInstance = await loadingTask.promise;
+        const pdfInstance = await loadingTask.promise;
+        pdfInstanceRef.current = pdfInstance; // 存储到 ref
         setPdfDoc(pdfInstance);
 
         // 根据 pageLimit 限制渲染页数
         const totalPages = pdfInstance.numPages;
         const maxPages =
           pageLimit > 0 ? Math.min(pageLimit, totalPages) : totalPages;
-        log.debug(`总页数: ${totalPages}, 限制渲染: ${maxPages} 页`);
 
         // 预计算页面的viewport信息和文本内容，只处理允许的页数
         const pageInfos: PageInfo[] = [];
+
+        // 先获取第一页的方向作为基准
+        const firstPage = await pdfInstance.getPage(1);
+        const firstViewport = firstPage.getViewport({ scale: 1.0 });
+        const firstAspectRatio = firstViewport.width / firstViewport.height;
+        const firstIsLandscape = firstAspectRatio > 1.2;
+
         for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
           const page = await pdfInstance.getPage(pageNum);
-          const viewport = page.getViewport({ scale: 1.0 }); // pdfjs-dist 2.x
+
+          // 获取原始 viewport（scale=1.0）
+          const originalViewport = page.getViewport({ scale: 1.0 });
+
+          // 判断当前页面方向
+          const aspectRatio = originalViewport.width / originalViewport.height;
+          const isLandscape = aspectRatio > 1.2;
+
+          // 如果当前页面方向与第一页不一致，说明数据异常，需要旋转
+          const needsRotation = isLandscape !== firstIsLandscape;
+          const viewport = needsRotation
+            ? page.getViewport({ scale: 1.0, rotation: 90 })
+            : originalViewport;
 
           // 获取页面文本内容
           let textContent: any | undefined;
@@ -235,7 +262,7 @@ const PdfViewer = (props: renderProps) => {
 
         hideLoading();
       } catch (error: any) {
-        // pdfjs-dist 2.4.456: 详细日志分析
+        // 详细日志分析
         log.debug(
           'Caught error:',
           error,
@@ -261,8 +288,8 @@ const PdfViewer = (props: renderProps) => {
 
           // 安全获取 PasswordResponses 常量
           const incorrectCode =
-            pdfjsLib.PasswordResponses?.INCORRECT_PASSWORD ?? 2;
-          const needCode = pdfjsLib.PasswordResponses?.NEED_PASSWORD ?? 1;
+            adapter.PasswordResponses?.INCORRECT_PASSWORD ?? 2;
+          const needCode = adapter.PasswordResponses?.NEED_PASSWORD ?? 1;
 
           if (error?.code === incorrectCode) {
             log.debug('密码错误');
@@ -278,7 +305,16 @@ const PdfViewer = (props: renderProps) => {
         }
       }
     },
-    [waitVerifyPassword, showLoading, src, pageLimit, hideLoading],
+    [
+      adapter,
+      adapterVersion,
+      waitVerifyPassword,
+      src,
+      pageLimit,
+      hideLoading,
+      autoRotateLandscape,
+      showLoadingError,
+    ],
   );
 
   // 缓存 handlePasswordSubmit，避免每次渲染创建新函数
@@ -302,11 +338,15 @@ const PdfViewer = (props: renderProps) => {
     loadPdf();
 
     return () => {
-      if (pdfInstance) {
-        pdfInstance.destroy();
+      // 清理时销毁 pdf 实例
+      if (pdfInstanceRef.current) {
+        pdfInstanceRef.current.destroy();
+        pdfInstanceRef.current = null;
       }
     };
-  }, [loadPdf, pdfInstance, src]); // 移除scale依赖，避免重复加载
+    // 注意：只依赖 src 和 adapter，避免重复加载
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src, adapter]);
 
   // 初始化搜索控制器
   useEffect(() => {
@@ -364,9 +404,11 @@ const PdfViewer = (props: renderProps) => {
 
         // 获取设备像素比
         const pixelRatio = window.devicePixelRatio || 1;
+
         // 使用捕获的 targetScale 计算 viewport
         const viewport = page.getViewport({ scale: targetScale });
 
+        // 计算高分辨率 canvas 尺寸
         const newWidth = Math.floor(viewport.width * pixelRatio);
         const newHeight = Math.floor(viewport.height * pixelRatio);
 
@@ -379,27 +421,36 @@ const PdfViewer = (props: renderProps) => {
         })!;
 
         // 2. 在离屏 canvas 上配置并渲染
-        scratchContext.save();
-        scratchContext.scale(pixelRatio, pixelRatio);
+        // 注意：先填充白色背景，然后使用变换矩阵让 PDF.js 正确渲染
         scratchContext.fillStyle = '#ffffff';
-        scratchContext.fillRect(0, 0, viewport.width, viewport.height);
+        scratchContext.fillRect(0, 0, newWidth, newHeight);
+
+        // 创建高分辨率的 viewport 用于渲染
+        const renderViewport = page.getViewport({
+          scale: targetScale * pixelRatio,
+        });
 
         await page.render({
           canvasContext: scratchContext,
-          viewport: viewport,
+          viewport: renderViewport,
         }).promise;
-        scratchContext.restore();
 
         // 3. 渲染完成后，再替换主 canvas 的内容
         // 只有在渲染成功后才更新 scale 记录
         currentRenderScaleRef.current.set(pageNum, targetScale);
 
         if (canvas.width !== newWidth || canvas.height !== newHeight) {
+          log.debug(
+            `[页面渲染] 第 ${pageNum} 页 Canvas 尺寸变化`,
+            `从 ${canvas.width}x${canvas.height} → ${newWidth}x${newHeight}`,
+          );
           canvas.width = newWidth;
           canvas.height = newHeight;
-          canvas.style.width = '100%';
-          canvas.style.height = '100%';
         }
+
+        // 设置 canvas 显示尺寸为 viewport 尺寸（CSS 尺寸）
+        canvas.style.width = `${viewport.width}px`;
+        canvas.style.height = `${viewport.height}px`;
 
         const mainContext = canvas.getContext('2d', { alpha: false })!;
         mainContext.drawImage(scratchCanvas, 0, 0);
@@ -447,6 +498,13 @@ const PdfViewer = (props: renderProps) => {
 
     // 同步更新 scaleRef
     scaleRef.current = scale;
+
+    // [DEBUG] Scale 变化日志
+    log.debug(
+      `[Scale 变化] scale: ${scale}`,
+      `displayMode: ${displayMode}`,
+      `pages.length: ${pages.length}`,
+    );
 
     // 清除之前的防抖计时器
     if (scaleDebounceRef.current) {
@@ -909,6 +967,12 @@ const PdfViewer = (props: renderProps) => {
       // 保存当前 scale，用于预填充
       const oldScale = scale;
 
+      // [DEBUG] 显示模式切换日志
+      log.debug(
+        `[模式切换] 从 ${displayMode} 切换到 ${realDisplayMode}`,
+        `当前 scale: ${oldScale}`,
+      );
+
       // 1. 切换模式前先清空渲染缓存
       // 因为模式切换会导致 Page 组件及其内部 Canvas 重新挂载，旧的渲染内容会丢失
       renderedPagesRef.current.clear();
@@ -921,6 +985,14 @@ const PdfViewer = (props: renderProps) => {
 
       // 2. 切换模式后，立即按照新模式重算比例
       const fitScale = calculateFitScale('width', realDisplayMode);
+
+      // [DEBUG] 模式切换时的 fitScale 计算
+      log.debug(
+        `[模式切换] 新模式下的 fitScale 计算`,
+        `realDisplayMode: ${realDisplayMode}`,
+        `fitScale: ${fitScale.toFixed(4)}`,
+      );
+
       let newScale;
 
       if (realDisplayMode === IDisplayMode.DoublePage) {
@@ -934,7 +1006,7 @@ const PdfViewer = (props: renderProps) => {
       setScale(newScale);
       log.debug(`模式切换为 ${realDisplayMode}，应用缩放比例: ${newScale}`);
     },
-    [calculateFitScale, scale, pages],
+    [calculateFitScale, scale, pages, displayMode],
   );
 
   // 处理缩放选择
@@ -1292,22 +1364,26 @@ const PdfViewer = (props: renderProps) => {
               (() => {
                 if (displayMode === 'single') {
                   return pages.map((pageInfo) => {
-                    // 计算原始尺寸
+                    // viewport 已经在加载时处理过，横向页面已旋转
                     const baseViewport = pageInfo.viewport.clone({
                       scale: 1.0,
-                      rotation: 0,
                     });
                     const dw = baseViewport.width * scale;
                     const dh = baseViewport.height * scale;
 
-                    // 判断是否处于 90/270 度旋转状态
+                    // 判断是否处于 90/270 度旋转状态（手动旋转）
                     const is90 = rotation % 180 !== 0;
 
-                    // 计算旋转后的布局宽高
-                    const layoutWidth = is90 ? dh : dw;
-                    const layoutHeight = is90 ? dw : dh;
+                    // 计算布局宽高
+                    let layoutWidth = dw;
+                    let layoutHeight = dh;
+                    if (is90) {
+                      // 手动旋转时交换宽高
+                      layoutWidth = dh;
+                      layoutHeight = dw;
+                    }
 
-                    // 变换逻辑：仅处理旋转
+                    // 变换逻辑：只对手动旋转应用 CSS transform
                     const transform =
                       rotation !== 0 ? `rotate(${rotation}deg)` : '';
 
@@ -1356,7 +1432,7 @@ const PdfViewer = (props: renderProps) => {
                             renderScale={
                               currentRenderScaleRef.current.get(
                                 pageInfo.pageNum,
-                              ) || 1.0
+                              ) || scale
                             }
                             highlightRects={highlightRects}
                             currentMatchIndex={currentSearchIndex}
@@ -1384,24 +1460,29 @@ const PdfViewer = (props: renderProps) => {
                           display: 'flex',
                           justifyContent: 'center',
                           alignItems: 'flex-start',
-                          gap: '20px',
                           margin: '20px auto',
                           width: 'max-content',
                           minWidth: '100%',
                         }}
                       >
                         {row.map((pageInfo) => {
+                          // viewport 已经在加载时处理过，横向页面已旋转
                           const baseViewport = pageInfo.viewport.clone({
                             scale: 1.0,
-                            rotation: 0,
                           });
                           const dw = baseViewport.width * scale;
                           const dh = baseViewport.height * scale;
-                          const is90 = rotation % 180 !== 0;
 
-                          const layoutWidth = is90 ? dh : dw;
-                          const layoutHeight = is90 ? dw : dh;
+                          // 计算布局宽高
+                          let layoutWidth = dw;
+                          let layoutHeight = dh;
+                          if (rotation % 180 !== 0) {
+                            // 手动旋转时交换宽高
+                            layoutWidth = dh;
+                            layoutHeight = dw;
+                          }
 
+                          // 变换逻辑：只对手动旋转应用 CSS transform
                           const transform =
                             rotation !== 0 ? `rotate(${rotation}deg)` : '';
 
@@ -1424,6 +1505,8 @@ const PdfViewer = (props: renderProps) => {
                                 justifyContent: 'center',
                                 position: 'relative',
                                 overflow: 'visible',
+                                marginLeft:
+                                  row.indexOf(pageInfo) > 0 ? '20px' : '0',
                               }}
                             >
                               <div

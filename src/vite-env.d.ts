@@ -62,3 +62,43 @@ declare module './components/render/cell/luckyexcel.esm.js' {
   const url: string;
   export default url;
 }
+
+// PDF.js v5 模块类型声明（动态加载）
+// 使用通配符声明以支持动态路径
+declare module '**/pdfjs-v5/pdf.js' {
+  export const GlobalWorkerOptions: {
+    workerSrc: string | false;
+  };
+  // eslint-disable-next-line no-unused-vars
+  export function getDocument(src: any): any;
+  export const PasswordResponses: {
+    NEED_PASSWORD: number;
+    INCORRECT_PASSWORD: number;
+  };
+}
+
+declare module '**/pdfjs-v5/pdf_viewer.js' {
+  export class TextLayerBuilder {
+    // eslint-disable-next-line no-unused-vars
+    constructor(options: {
+      textLayerDiv: HTMLDivElement;
+      pageIndex: number;
+      viewport: any;
+      enhanceTextSelection?: boolean;
+      eventBus?: any;
+    });
+    // eslint-disable-next-line no-unused-vars
+    setTextContent(textContent: any): void;
+    render(): void;
+    cancel(): void;
+  }
+  export class EventBus {
+    constructor();
+    // eslint-disable-next-line no-unused-vars
+    on(eventName: string, listener: (...args: any[]) => void): void;
+    // eslint-disable-next-line no-unused-vars
+    off(eventName: string, listener: (...args: any[]) => void): void;
+    // eslint-disable-next-line no-unused-vars
+    dispatch(eventName: string, data?: any): void;
+  }
+}

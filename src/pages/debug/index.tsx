@@ -71,6 +71,18 @@ const FILE_GROUPS: FileGroup[] = [
         },
         icon: <FilePdfOutlined />,
       },
+      // https://test.moqisoft.com/Doc1.1.pdf
+      {
+        name: 'PDF 方向异常',
+        url: 'https://test.moqisoft.com/Doc1.1.pdf',
+        icon: <FilePdfOutlined />,
+      },
+      // https://test.moqisoft.com/%E5%86%85%E5%90%ABvisio%E5%9B%BE-x2t.pdf
+      {
+        name: '包含 visio 图的 PDF',
+        url: 'https://test.moqisoft.com/%E5%86%85%E5%90%ABvisio%E5%9B%BE-x2t.pdf',
+        icon: <FilePdfOutlined />,
+      },
     ],
   },
   {
@@ -435,6 +447,19 @@ const FILE_GROUPS: FileGroup[] = [
         name: '文件组合',
         url: 'https://test.moqisoft.com/%E6%96%87%E4%BB%B6%E7%BB%84%E5%90%88.7z',
         icon: <FileZipOutlined />,
+      },
+      // https://test.moqisoft.com/%E5%9B%BE.rar
+      {
+        name: 'RAR5 文件',
+        url: 'https://test.moqisoft.com/%E5%9B%BE.rar',
+        icon: <FileZipOutlined />,
+      },
+      // https://test.moqisoft.com/%E5%9B%BE-mima.rar
+      {
+        name: 'RAR5 文件',
+        url: 'https://test.moqisoft.com/%E5%9B%BE-mima.rar',
+        icon: <FileZipOutlined />,
+        badge: '加密(密码123)',
       },
       {
         name: 'ZIP 文件',

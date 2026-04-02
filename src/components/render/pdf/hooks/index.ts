@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-// pdfjs-dist 2.x worker URL
-// Chrome 60 兼容：使用本地静态 worker 文件
-import { getAppContext } from '@/utils';
-const webPrefix = getAppContext() + '/preview';
-const workerUrl = webPrefix + '/vendor/pdfjs-v2/pdf.worker.min.js';
+/**
+ * PDF 组件 Hooks 导出
+ */
 
-export default workerUrl;
+export { usePdfAdapter, usePdfDocument } from './usePdfAdapter';
