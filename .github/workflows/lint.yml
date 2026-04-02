@@ -3,7 +3,7 @@ name: Frontend Lint
 on:
   push:
     branches:
-      - main # 或你希望触发的分支
+      - main, develop # 或你希望触发的分支
   pull_request:
     branches:
       - main # PR 时也可以触发
