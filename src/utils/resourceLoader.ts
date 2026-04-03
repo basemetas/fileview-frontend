@@ -67,7 +67,9 @@ function setElementAttributes(
   }
 
   try {
-    Object.entries(attributes).forEach(([key, value]) => {
+    Object.entries(attributes).forEach((entry) => {
+      const key = entry[0];
+      const value = entry[1];
       if (key && key !== 'undefined' && value !== undefined && value !== null) {
         element.setAttribute(key, String(value));
       }
@@ -81,12 +83,10 @@ export async function loadJS(
   url: string,
   options: Omit<LoadOptions, 'type'> = {},
 ): Promise<void> {
-  const {
-    id = `js-${btoa(url).slice(0, 10)}`,
-    attributes = {},
-    retryCount = 2,
-    retryDelay = 1000,
-  } = options;
+  const id = options.id || `js-${btoa(url).slice(0, 10)}`;
+  const attributes = options.attributes || {};
+  const retryCount = options.retryCount || 2;
+  const retryDelay = options.retryDelay || 1000;
 
   // 检查缓存
   if (resourceCache[url] && resourceCache[url].loaded) {
@@ -127,12 +127,10 @@ export async function loadCSS(
   url: string,
   options: Omit<LoadOptions, 'type'> = {},
 ): Promise<void> {
-  const {
-    id = `css-${btoa(url).slice(0, 10)}`,
-    attributes = {},
-    retryCount = 2,
-    retryDelay = 1000,
-  } = options;
+  const id = options.id || `css-${btoa(url).slice(0, 10)}`;
+  const attributes = options.attributes || {};
+  const retryCount = options.retryCount || 2;
+  const retryDelay = options.retryDelay || 1000;
 
   // 检查缓存
   if (resourceCache[url] && resourceCache[url].loaded) {
@@ -175,12 +173,10 @@ async function loadResource(
   options: LoadOptions & { type: 'js' | 'css' },
 ): Promise<void> {
   // 提供安全的默认值
-  const {
-    type,
-    id = `${type}-${Date.now()}`,
-    attributes = {},
-    timeout = 60000,
-  } = options;
+  const type = options.type;
+  const id = options.id || `${type}-${Date.now()}`;
+  const attributes = options.attributes || {};
+  const timeout = options.timeout || 60000;
 
   return new Promise((resolve, reject) => {
     // 超时处理
