@@ -305,7 +305,7 @@ const PdfViewer = (props: renderProps) => {
           }
         } else {
           log.error('PDF加载失败:', error);
-          alert('PDF加载失败' + error);
+          // alert('PDF加载失败' + error);
           showLoadingError();
         }
       }
