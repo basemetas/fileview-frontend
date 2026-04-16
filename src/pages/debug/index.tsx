@@ -83,6 +83,12 @@ const FILE_GROUPS: FileGroup[] = [
         url: 'https://test.moqisoft.com/%E5%86%85%E5%90%ABvisio%E5%9B%BE-x2t.pdf',
         icon: <FilePdfOutlined />,
       },
+      // https://test.moqisoft.com/%E9%80%9A%E8%A1%8C%E8%B4%B9%E5%8F%91%E7%A5%A8.pdf
+      {
+        name: '缺失内容的发票.pdf',
+        url: 'https://test.moqisoft.com/%E9%80%9A%E8%A1%8C%E8%B4%B9%E5%8F%91%E7%A5%A8.pdf',
+        icon: <FilePdfOutlined />,
+      },
     ],
   },
   {

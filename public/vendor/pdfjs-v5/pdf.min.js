@@ -1,3 +1,15 @@
+
+// Polyfill for Map.prototype.getOrInsertComputed (for old browsers)
+if (!Map.prototype.getOrInsertComputed) {
+  Map.prototype.getOrInsertComputed = function(key, callback) {
+    if (this.has(key)) {
+      return this.get(key);
+    }
+    const value = callback();
+    this.set(key, value);
+    return value;
+  };
+}
 /**
  * @licstart The following is the entire license notice for the
  * JavaScript code in this page

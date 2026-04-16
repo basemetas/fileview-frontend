@@ -69,7 +69,11 @@ const PdfViewer = (props: renderProps) => {
   } = permission;
 
   // 使用 PDF 适配器
-  const { adapter, version: adapterVersion } = usePdfAdapter();
+  const {
+    adapter,
+    version: adapterVersion,
+    isLoading: isAdapterLoading,
+  } = usePdfAdapter();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pageCanvasRef = useRef<HTMLDivElement>(null); // 指向 .pageCanvas，用于滚轮缩放
@@ -301,6 +305,7 @@ const PdfViewer = (props: renderProps) => {
           }
         } else {
           log.error('PDF加载失败:', error);
+          alert('PDF加载失败' + error);
           showLoadingError();
         }
       }
@@ -334,6 +339,17 @@ const PdfViewer = (props: renderProps) => {
   useEffect(() => {
     if (!src) return;
 
+    // 等待适配器加载完成
+    if (isAdapterLoading) {
+      log.debug('等待 PDF 适配器加载...');
+      return;
+    }
+
+    if (!adapter) {
+      log.error('PDF 适配器加载失败');
+      return;
+    }
+
     loadPdf();
 
     return () => {
@@ -345,7 +361,7 @@ const PdfViewer = (props: renderProps) => {
     };
     // 注意：只依赖 src 和 adapter，避免重复加载
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [src, adapter]);
+  }, [src, adapter, isAdapterLoading]);
 
   // 初始化搜索控制器
   useEffect(() => {
