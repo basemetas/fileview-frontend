@@ -25,6 +25,9 @@
 import { getAppContext } from '@/utils';
 const webPrefix = getAppContext() + '/preview';
 
+// 构建时间戳，用于打破浏览器缓存
+const BUILD_TIMESTAMP = __BUILD_TIMESTAMP__;
+
 // 缓存 worker URL
 let cachedWorkerUrl: string | null = null;
 
@@ -39,7 +42,9 @@ export const getPdfV5WorkerUrl = (): string => {
 
   // public 目录下的文件编译后直接在根路径
   // 所以 public/vendor/pdfjs-v5/xxx.js -> {context}/vendor/pdfjs-v5/xxx.js
-  cachedWorkerUrl = webPrefix + '/vendor/pdfjs-v5/pdf.worker.min.js';
+  // 添加构建时间戳避免浏览器缓存问题
+  cachedWorkerUrl =
+    webPrefix + '/vendor/pdfjs-v5/pdf.worker.min.js?t=' + BUILD_TIMESTAMP;
 
   return cachedWorkerUrl;
 };

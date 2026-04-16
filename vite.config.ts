@@ -159,6 +159,10 @@ function compressVendorFiles(): Plugin {
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => ({
   base: './',
+  define: {
+    // 构建时间戳，用于解决静态资源缓存问题
+    __BUILD_TIMESTAMP__: JSON.stringify(Date.now()),
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

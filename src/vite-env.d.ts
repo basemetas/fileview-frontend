@@ -16,6 +16,9 @@
 
 /// <reference types="vite/client" />
 
+// 构建时间戳（由 Vite define 注入）
+declare const __BUILD_TIMESTAMP__: number;
+
 declare module '*.css' {
   const content: Record<string, string>;
   export default content;
@@ -45,7 +48,7 @@ declare module '*.less' {
 declare module 'tga-js' {
   export default class TgaLoader {
     constructor();
-    // eslint-disable-next-line no-unused-vars
+
     open(url: string, callback: () => void): void;
     getCanvas(): HTMLCanvasElement;
   }
@@ -69,7 +72,7 @@ declare module '**/pdfjs-v5/pdf.js' {
   export const GlobalWorkerOptions: {
     workerSrc: string | false;
   };
-  // eslint-disable-next-line no-unused-vars
+
   export function getDocument(src: any): any;
   export const PasswordResponses: {
     NEED_PASSWORD: number;
@@ -79,7 +82,6 @@ declare module '**/pdfjs-v5/pdf.js' {
 
 declare module '**/pdfjs-v5/pdf_viewer.js' {
   export class TextLayerBuilder {
-    // eslint-disable-next-line no-unused-vars
     constructor(options: {
       textLayerDiv: HTMLDivElement;
       pageIndex: number;
@@ -87,18 +89,18 @@ declare module '**/pdfjs-v5/pdf_viewer.js' {
       enhanceTextSelection?: boolean;
       eventBus?: any;
     });
-    // eslint-disable-next-line no-unused-vars
+
     setTextContent(textContent: any): void;
     render(): void;
     cancel(): void;
   }
   export class EventBus {
     constructor();
-    // eslint-disable-next-line no-unused-vars
+
     on(eventName: string, listener: (...args: any[]) => void): void;
-    // eslint-disable-next-line no-unused-vars
+
     off(eventName: string, listener: (...args: any[]) => void): void;
-    // eslint-disable-next-line no-unused-vars
+
     dispatch(eventName: string, data?: any): void;
   }
 }

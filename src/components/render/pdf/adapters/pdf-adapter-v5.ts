@@ -108,10 +108,12 @@ export class PdfAdapterV5 implements IPdfAdapter {
       // 动态加载 PDF.js v5 核心模块
       // public 目录下的文件编译后直接在根路径
       // 所以 public/vendor/pdfjs-v5/xxx.js -> {context}/vendor/pdfjs-v5/xxx.js
+      // 添加构建时间戳避免浏览器缓存问题
+      const timestamp = __BUILD_TIMESTAMP__;
       const pdfjsModule = await import(
         /* webpackChunkName: "pdfjs-v5" */
         /* @vite-ignore */
-        `${webPrefix}/vendor/pdfjs-v5/pdf.js` as string
+        `${webPrefix}/vendor/pdfjs-v5/pdf.js?t=${timestamp}` as string
       );
 
       this._pdfjsLib = pdfjsModule;
@@ -125,7 +127,7 @@ export class PdfAdapterV5 implements IPdfAdapter {
       const viewerModule = await import(
         /* webpackChunkName: "pdfjs-v5-viewer" */
         /* @vite-ignore */
-        `${webPrefix}/vendor/pdfjs-v5/pdf_viewer.js` as string
+        `${webPrefix}/vendor/pdfjs-v5/pdf_viewer.js?t=${timestamp}` as string
       );
 
       this._pdfjsViewer = viewerModule;
