@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /**
  * PDF.js v5 类型声明文件
  * 用于支持 Chrome >= 92 的现代浏览器

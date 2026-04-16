@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 declare module 'pdfjs-dist' {
   export const GlobalWorkerOptions: {
     workerSrc: string | false;
