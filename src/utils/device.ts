@@ -94,11 +94,69 @@ const getChromeVersion = (): number => {
 };
 
 /**
+ * 检查是否支持动态导入 ES 模块
+ * 某些浏览器（如小米浏览器）可能不支持通过 import() 加载 ES 模块
+ * @returns true 如果支持动态导入 ES 模块
+ */
+const supportsDynamicImport = (): boolean => {
+  try {
+    // 检测是否支持动态 import()
+    // 使用 new Function 避免语法错误导致脚本中断
+    new Function('return import("data:text/javascript,export default 1")')();
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * 检查是否支持 ES 模块 Worker
+ * PDF.js v5 使用 new Worker(..., { type: "module" }) 加载 worker
+ * 某些浏览器（如小米浏览器）可能不支持此特性
+ * @returns true 如果支持 ES 模块 Worker
+ */
+const supportsModuleWorker = (): boolean => {
+  try {
+    // 尝试创建一个 ES 模块类型的 Worker
+    // 使用 data URL 避免网络请求
+    const worker = new Worker('data:text/javascript,export default 1', {
+      type: 'module',
+    });
+    worker.terminate();
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * 检查是否支持 PDF.js v5
  * PDF.js v5 需要 Chrome >= 92（支持顶层 await、私有类字段等特性）
+ * 同时需要支持动态导入 ES 模块和 ES 模块 Worker
  * @returns true 如果支持 PDF.js v5
  */
 const supportsPdfV5 = (): boolean => {
+  // 首先检查是否支持动态导入 ES 模块
+  // 这是加载 PDF.js v5 的必要条件
+  if (!supportsDynamicImport()) {
+    return false;
+  }
+
+  // 检查是否支持 ES 模块 Worker
+  // PDF.js v5 使用此特性加载 worker
+  if (!supportsModuleWorker()) {
+    return false;
+  }
+
+  // 检查必要的 JavaScript 特性
+  // 这些特性是 PDF.js v5 的关键依赖
+  try {
+    // 检查是否支持私有类字段
+    new Function('class A { #x = 1; get x() { return this.#x; } }');
+  } catch {
+    return false;
+  }
+
   const version = getChromeVersion();
 
   // 对于 Chrome 浏览器，严格按版本号判断
@@ -107,16 +165,8 @@ const supportsPdfV5 = (): boolean => {
     return version >= 92;
   }
 
-  // 对于非 Chrome 浏览器（如 Firefox、Safari），检查是否支持必要的 JavaScript 特性
-  // 顶层 await 和私有类字段是 v5 的关键依赖
-  try {
-    // 检查是否支持私有类字段
-    // 使用 new Function 避免语法错误导致脚本中断
-    new Function('class A { #x = 1; get x() { return this.#x; } }');
-    return true;
-  } catch {
-    return false;
-  }
+  // 对于非 Chrome 浏览器，如果通过了上面的特性检测，也支持 v5
+  return true;
 };
 
 export const isMobile = isMobileFun();

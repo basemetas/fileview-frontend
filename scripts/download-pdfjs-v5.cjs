@@ -182,6 +182,58 @@ async function main() {
     }
   }
 
+  // 为 worker 文件添加 toHex polyfill（修复旧浏览器兼容性问题）
+  console.log('\n添加兼容性 polyfill...');
+
+  const toHexPolyfill = `
+// Polyfill for Uint8Array.prototype.toHex (for old browsers)
+if (!Uint8Array.prototype.toHex) {
+  Uint8Array.prototype.toHex = function() {
+    return Array.from(this)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  };
+}
+`;
+
+  const mapPolyfill = `
+// Polyfill for Map.prototype.getOrInsertComputed (for old browsers)
+if (!Map.prototype.getOrInsertComputed) {
+  Map.prototype.getOrInsertComputed = function(key, callback) {
+    if (this.has(key)) {
+      return this.get(key);
+    }
+    const value = callback();
+    this.set(key, value);
+    return value;
+  };
+}
+`;
+
+  // 为 worker 文件添加 polyfill
+  const workerFiles = ['pdf.worker.js', 'pdf.worker.min.js'];
+  for (const file of workerFiles) {
+    const filePath = path.join(OUTPUT_DIR, file);
+    if (fs.existsSync(filePath)) {
+      let content = fs.readFileSync(filePath, 'utf-8');
+      content = toHexPolyfill + mapPolyfill + content;
+      fs.writeFileSync(filePath, content, 'utf-8');
+      console.log(`添加 polyfill: ${file}`);
+    }
+  }
+
+  // 为 pdf.js 主文件添加 Map polyfill（也需要此方法）
+  const mainFiles = ['pdf.js', 'pdf.min.js'];
+  for (const file of mainFiles) {
+    const filePath = path.join(OUTPUT_DIR, file);
+    if (fs.existsSync(filePath)) {
+      let content = fs.readFileSync(filePath, 'utf-8');
+      content = mapPolyfill + content;
+      fs.writeFileSync(filePath, content, 'utf-8');
+      console.log(`添加 polyfill: ${file}`);
+    }
+  }
+
   // 创建版本信息文件
   const versionInfo = {
     version: PDFJS_VERSION,
