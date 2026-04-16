@@ -17,6 +17,9 @@
 // utils/resourceLoader.ts - 完整修复版
 import log from './logger';
 
+// 构建时间戳，用于打破浏览器缓存
+const BUILD_TIMESTAMP = __BUILD_TIMESTAMP__;
+
 interface LoadOptions {
   type?: 'js' | 'css';
   id?: string;
@@ -83,12 +86,17 @@ export async function loadJS(
   url: string,
   options: Omit<LoadOptions, 'type'> = {},
 ): Promise<void> {
+  // 添加构建时间戳打破缓存（仅对本地 vendor 资源）
+  const urlWithTimestamp = url.includes('vendor/')
+    ? `${url}${url.includes('?') ? '&' : '?'}t=${BUILD_TIMESTAMP}`
+    : url;
+
   const id = options.id || `js-${btoa(url).slice(0, 10)}`;
   const attributes = options.attributes || {};
   const retryCount = options.retryCount || 2;
   const retryDelay = options.retryDelay || 1000;
 
-  // 检查缓存
+  // 检查缓存（使用原始 URL 作为缓存键）
   if (resourceCache[url] && resourceCache[url].loaded) {
     return;
   }
@@ -99,7 +107,7 @@ export async function loadJS(
 
   const loadWithRetry = async (attempt = 0): Promise<void> => {
     try {
-      await loadResource(url, {
+      await loadResource(urlWithTimestamp, {
         ...options,
         type: 'js' as const,
         id,
@@ -127,12 +135,17 @@ export async function loadCSS(
   url: string,
   options: Omit<LoadOptions, 'type'> = {},
 ): Promise<void> {
+  // 添加构建时间戳打破缓存（仅对本地 vendor 资源）
+  const urlWithTimestamp = url.includes('vendor/')
+    ? `${url}${url.includes('?') ? '&' : '?'}t=${BUILD_TIMESTAMP}`
+    : url;
+
   const id = options.id || `css-${btoa(url).slice(0, 10)}`;
   const attributes = options.attributes || {};
   const retryCount = options.retryCount || 2;
   const retryDelay = options.retryDelay || 1000;
 
-  // 检查缓存
+  // 检查缓存（使用原始 URL 作为缓存键）
   if (resourceCache[url] && resourceCache[url].loaded) {
     return;
   }
@@ -143,7 +156,7 @@ export async function loadCSS(
 
   const loadWithRetry = async (attempt = 0): Promise<void> => {
     try {
-      await loadResource(url, {
+      await loadResource(urlWithTimestamp, {
         ...options,
         type: 'css' as const,
         id,

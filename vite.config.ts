@@ -159,6 +159,10 @@ function compressVendorFiles(): Plugin {
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => ({
   base: './',
+  define: {
+    // 构建时间戳，用于解决静态资源缓存问题
+    __BUILD_TIMESTAMP__: JSON.stringify(Date.now()),
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -230,13 +234,13 @@ export default defineConfig(({ command }) => ({
     open: true,
     proxy: {
       '/preview/api': {
-        target: 'http://localhost:8184',
+        target: 'http://localhost:4000',
         // changeOrigin: true,
         // 示例：/preview/api → /preview
         // rewrite: path => path.replace(/^\/preview\/api/, '/preview'),
       },
       '^/.+/preview/api': {
-        target: 'http://localhost:8184',
+        target: 'http://localhost:4000',
         // changeOrigin: true,
         // 示例：/abc/preview/api → /preview
         rewrite: (path) =>

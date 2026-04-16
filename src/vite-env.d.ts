@@ -16,6 +16,9 @@
 
 /// <reference types="vite/client" />
 
+// 构建时间戳（由 Vite define 注入）
+declare const __BUILD_TIMESTAMP__: number;
+
 declare module '*.css' {
   const content: Record<string, string>;
   export default content;
