@@ -63,6 +63,11 @@ const FILE_GROUPS: FileGroup[] = [
         icon: <FileWordOutlined />,
       },
       {
+        name: '建筑030号-变更审核成果文件（封面+审核说明+估算表+计价文件+报告）改-whzu52.zip',
+        url: 'https://test.moqisoft.com/建筑030号-变更审核成果文件（封面+审核说明+估算表+计价文件+报告）改-whzu52.zip',
+        icon: <FileWordOutlined />,
+      },
+      {
         name: 'OFD文件',
         url: 'https://test.moqisoft.com/test.ofd?index=3',
         badge: '嵌入模式',
