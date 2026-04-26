@@ -28,3 +28,7 @@ export const getAppContext = () => {
 export const getApiContext = () => {
   return `${getAppContext()}/preview/api`.replace(/\/+/g, '/');
 };
+
+export const getWebPrefix = () => {
+  return `${getAppContext()}/preview`;
+};

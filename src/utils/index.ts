@@ -26,9 +26,10 @@ export {
 export { getComponentLoader } from './componentLoader';
 export { getRenderType } from './renderTypes';
 export { getArchiveRenderData } from './getArchiveRenderData';
-export { getAppContext, getApiContext } from './getContext';
+export { getAppContext, getApiContext, getWebPrefix } from './getContext';
 export { clientId } from './uuid';
 export { formatBytes } from './formatBytes';
 export { default as log } from './logger';
 export { autoFixedURI } from './autoFixedURI';
 export { isMobile, isPhone, isPad, isTouchSupported } from './device';
+export { isWasmBulkMemorySupported } from './wasmFeatureDetect';

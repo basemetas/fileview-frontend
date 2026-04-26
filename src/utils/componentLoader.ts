@@ -49,7 +49,7 @@ export const getComponentLoader = (type: string): ComponentModule => {
     case 'epub':
       return lazy(() => import('@/components/render/epub'));
     case 'cad':
-      return lazy(() => import('@/components/render/cad'));
+      return lazy(() => import('@/components/render/dwg'));
     case 'drawio':
       return lazy(() => import('@/components/render/drawio'));
     case 'threed':
