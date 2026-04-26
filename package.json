@@ -8,7 +8,7 @@
     "url": "https://github.com/BaseMetas/fileview-frontend.git"
   },
   "private": true,
-  "version": "1.4.2",
+  "version": "1.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite --force",
