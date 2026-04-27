@@ -149,14 +149,14 @@ const Topbar = ({
         try {
           iframe.contentWindow?.focus();
           iframe.contentWindow?.print();
+          setTimeout(() => {
+            message.destroy();
+          }, 1000);
+          console.debug('PDF加载完成，开始打印');
         } catch (error) {
           log.error('打印失败:', error);
           message.error('打印失败');
         }
-        setTimeout(() => {
-          message.destroy();
-        }, 1000);
-        console.debug('PDF加载完成，开始打印');
       }, 0);
     };
   }, [previewUrl]);
