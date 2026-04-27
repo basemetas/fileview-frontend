@@ -118,6 +118,10 @@ const Topbar = ({
       return;
     }
 
+    // 创建全局loading
+    console.debug('创建全局loading');
+    message.loading('打印准备中');
+
     const PRINT_IFRAME_ID = 'pdf-print-iframe';
 
     // 查找或创建iframe
@@ -149,6 +153,10 @@ const Topbar = ({
           log.error('打印失败:', error);
           message.error('打印失败');
         }
+        setTimeout(() => {
+          message.destroy();
+        }, 1000);
+        console.debug('PDF加载完成，开始打印');
       }, 0);
     };
   }, [previewUrl]);
