@@ -29,7 +29,6 @@ import zhCN from 'antd/es/locale/zh_CN';
 
 message.config({
   top: 100,
-  duration: 2,
   maxCount: 3,
 });
 
