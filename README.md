@@ -48,9 +48,9 @@ https://github.com/BaseMetas/fileview
 - [PDF.js](https://github.com/mozilla/pdf.js) - PDF 文档渲染
 - [EPUB.js](https://github.com/futurepress/epub.js) - EPUB 电子书阅读
 - [bpmn-js](https://github.com/bpmn-io/bpmn-js) - BPMN 流程图查看和编辑
-- [dxf-viewer](https://github.com/vagran/dxf-viewer) - CAD DXF 文件查看
-- [dxf-parser](https://github.com/gdsestimating/dxf-parser) - DXF 文件解析
-- [Mind Elixir](https://github.com/ssshooter/mind-elixir-core) - 思维导图渲染
+- [X-Viewer](https://www.npmjs.com/package/@x-viewer/core) - CAD DXF/DWG 文件查看
+- [Mind Elixir](https://github.com/ssshooter/mind-elixir-core) - XMind 数据解析与思维导图渲染
+- [XMind Embed Viewer](https://github.com/xmindltd/xmind-embed-viewer) - XMind 文件查看
 - [Three.js](https://github.com/mrdoob/three.js) - 3D 图形库
 - [ViewerJS](https://github.com/fengyuanchen/viewerjs) - 图片查看器
 - [tga-js](https://github.com/vthibault/tga.js) - TGA 图片格式支持
