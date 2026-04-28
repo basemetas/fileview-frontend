@@ -77,7 +77,7 @@ const DwgViewer = (props: renderProps) => {
         log.error('DWG 文件预览失败:', error.message);
         showLoadingError('文件预览失败', error.message);
       });
-  }, [hideLoading, loadModel, showLoadingError]);
+  }, [hideLoading, loadModel, showLoadingError, src]);
 
   return (
     <div className={styles.pageContainer}>
