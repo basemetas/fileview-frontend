@@ -8,7 +8,7 @@
     "url": "https://github.com/BaseMetas/fileview-frontend.git"
   },
   "private": true,
-  "version": "1.4.2",
+  "version": "1.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite --force",
@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.2",
+    "@x-viewer/core": "^0.21.9",
     "abortcontroller-polyfill": "^1.7.8",
     "antd": "^4.24.16",
     "axios": "^1.13.5",
@@ -59,7 +60,7 @@
     "resize-observer-polyfill": "^1.5.1",
     "rhino3dm": "^0.15.0-beta",
     "tga-js": "^1.1.1",
-    "three": "^0.161.0",
+    "three": "^0.182.0",
     "uuid": "^13.0.0",
     "vconsole": "^3.15.1",
     "video.js": "^7.21.7",

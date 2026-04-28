@@ -24,8 +24,13 @@ import View from '@/pages/view';
 import NotFound from '@/pages/notfound';
 import { getAppContext } from '@/utils';
 const appContext = getAppContext();
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, message } from 'antd';
 import zhCN from 'antd/es/locale/zh_CN';
+
+message.config({
+  top: 100,
+  maxCount: 3,
+});
 
 const App: React.FC = () => {
   return (
