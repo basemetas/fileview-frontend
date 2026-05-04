@@ -19,6 +19,58 @@ if (!Map.prototype.getOrInsertComputed) {
     return value;
   };
 }
+
+// Polyfill for Promise.try (for old browsers, Chrome < 128)
+if (typeof Promise.try !== "function") {
+  Promise.try = function(callback, ...args) {
+    return new Promise(function(resolve) {
+      resolve(callback(...args));
+    });
+  };
+}
+
+// Polyfill for Promise.withResolvers (for old browsers, Chrome < 119)
+if (typeof Promise.withResolvers !== "function") {
+  Promise.withResolvers = function() {
+    var resolve, reject;
+    var promise = new Promise(function(res, rej) {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise: promise, resolve: resolve, reject: reject };
+  };
+}
+
+// Polyfill for ReadableStream async iteration (for old browsers, Chrome < 93)
+// Required by PDF.js v5 getTextContent which uses "for await...of readableStream"
+if (typeof ReadableStream !== "undefined" &&
+    !ReadableStream.prototype[Symbol.asyncIterator]) {
+  ReadableStream.prototype[Symbol.asyncIterator] = function() {
+    var reader = this.getReader();
+    return {
+      next: function() { return reader.read(); },
+      return: function() {
+        reader.releaseLock();
+        return Promise.resolve({ done: true, value: undefined });
+      },
+      [Symbol.asyncIterator]: function() { return this; }
+    };
+  };
+}
+
+// Polyfill for ArrayBuffer.prototype.transferToFixedLength (for old browsers, Chrome < 125)
+// Required by PDF.js v5 worker getOperatorList for buffer transfer
+if (typeof ArrayBuffer !== "undefined" &&
+    typeof ArrayBuffer.prototype.transferToFixedLength !== "function") {
+  ArrayBuffer.prototype.transferToFixedLength = function() {
+    // If transfer() is available (Chrome 114+), prefer it (properly detaches original)
+    if (typeof this.transfer === "function") {
+      return this.transfer();
+    }
+    // Otherwise, fall back to slice (copy without detaching original)
+    return this.slice(0);
+  };
+}
 /**
  * @licstart The following is the entire license notice for the
  * JavaScript code in this page

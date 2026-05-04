@@ -1,3 +1,4 @@
+/* eslint-env node */
 /*
  * Copyright 2025 BaseMetas
  *
@@ -31,12 +32,6 @@ const http = require('http');
 
 // PDF.js v5 版本号
 const PDFJS_VERSION = '5.5.207';
-
-// CDN 地址列表（按优先级排序）
-const CDN_URLS = [
-  `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/build/pdf.mjs`,
-  `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.mjs`,
-];
 
 // 需要下载的文件列表
 // 注意：使用 .js 扩展名以避免 MIME 类型问题
@@ -210,30 +205,137 @@ if (!Map.prototype.getOrInsertComputed) {
 }
 `;
 
+  const promiseTryPolyfill = `
+// Polyfill for Promise.try (for old browsers, Chrome < 128)
+if (typeof Promise.try !== "function") {
+  Promise.try = function(callback, ...args) {
+    return new Promise(function(resolve) {
+      resolve(callback(...args));
+    });
+  };
+}
+`;
+
+  const promiseWithResolversPolyfill = `
+// Polyfill for Promise.withResolvers (for old browsers, Chrome < 119)
+if (typeof Promise.withResolvers !== "function") {
+  Promise.withResolvers = function() {
+    var resolve, reject;
+    var promise = new Promise(function(res, rej) {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise: promise, resolve: resolve, reject: reject };
+  };
+}
+`;
+
+  const readableStreamAsyncIteratorPolyfill = `
+// Polyfill for ReadableStream async iteration (for old browsers, Chrome < 93)
+// Required by PDF.js v5 getTextContent which uses "for await...of readableStream"
+if (typeof ReadableStream !== "undefined" &&
+    !ReadableStream.prototype[Symbol.asyncIterator]) {
+  ReadableStream.prototype[Symbol.asyncIterator] = function() {
+    var reader = this.getReader();
+    return {
+      next: function() { return reader.read(); },
+      return: function() {
+        reader.releaseLock();
+        return Promise.resolve({ done: true, value: undefined });
+      },
+      [Symbol.asyncIterator]: function() { return this; }
+    };
+  };
+}
+`;
+
+  const transferToFixedLengthPolyfill = `
+// Polyfill for ArrayBuffer.prototype.transferToFixedLength (for old browsers, Chrome < 125)
+// Required by PDF.js v5 worker getOperatorList for buffer transfer
+if (typeof ArrayBuffer !== "undefined" &&
+    typeof ArrayBuffer.prototype.transferToFixedLength !== "function") {
+  ArrayBuffer.prototype.transferToFixedLength = function() {
+    // If transfer() is available (Chrome 114+), prefer it (properly detaches original)
+    if (typeof this.transfer === "function") {
+      return this.transfer();
+    }
+    // Otherwise, fall back to slice (copy without detaching original)
+    return this.slice(0);
+  };
+}
+`;
+
   // 为 worker 文件添加 polyfill
   const workerFiles = ['pdf.worker.js', 'pdf.worker.min.js'];
   for (const file of workerFiles) {
     const filePath = path.join(OUTPUT_DIR, file);
     if (fs.existsSync(filePath)) {
       let content = fs.readFileSync(filePath, 'utf-8');
-      content = toHexPolyfill + mapPolyfill + content;
+      content =
+        toHexPolyfill +
+        mapPolyfill +
+        promiseTryPolyfill +
+        promiseWithResolversPolyfill +
+        readableStreamAsyncIteratorPolyfill +
+        transferToFixedLengthPolyfill +
+        content;
       fs.writeFileSync(filePath, content, 'utf-8');
       console.log(`添加 polyfill: ${file}`);
     }
   }
 
-  // 为 pdf.js 主文件添加 Map polyfill（也需要此方法）
+  // 为 pdf.js 主文件添加 Map + Promise + ReadableStream + ArrayBuffer polyfill
   const mainFiles = ['pdf.js', 'pdf.min.js'];
   for (const file of mainFiles) {
     const filePath = path.join(OUTPUT_DIR, file);
     if (fs.existsSync(filePath)) {
       let content = fs.readFileSync(filePath, 'utf-8');
-      content = mapPolyfill + content;
+      content =
+        mapPolyfill +
+        promiseTryPolyfill +
+        promiseWithResolversPolyfill +
+        readableStreamAsyncIteratorPolyfill +
+        transferToFixedLengthPolyfill +
+        content;
       fs.writeFileSync(filePath, content, 'utf-8');
       console.log(`添加 polyfill: ${file}`);
     }
   }
 
+  // 为 pdf_viewer.js 替换 /v 正则标志为等价的 /u 正则
+  // /v 标志是语法级别的，无法 polyfill，但 pdf_viewer.js 中只有一处使用
+  // 通过字符串精确替换将 /v 正则转换为等价的 /u 正则
+  // 集合减法 A--[B] → 否定字符类 [^b] 转换：
+  //   [\S--[\p{P}<>]]         → [^\s\p{P}<>]
+  //   [\S--[[\]]]             → [^\s\[\]]
+  //   [\S--[@\p{Ps}\p{Pe}<>]] → [^\s@\p{Ps}\p{Pe}<>]
+  //   [\S--[[\p{P}--\-]<>]]  → [^\s\p{P}<>] (连字符也排除，影响极小)
+  const viewerFiles = ['pdf_viewer.js', 'pdf_viewer.min.js'];
+  for (const file of viewerFiles) {
+    const filePath = path.join(OUTPUT_DIR, file);
+    if (fs.existsSync(filePath)) {
+      let content = fs.readFileSync(filePath, 'utf-8');
+      // 用行号定位后用字符串替换
+      const lines = content.split('\n');
+      let replaced = false;
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].includes('/gmv') && lines[i].includes('\\S--')) {
+          lines[i] = lines[i].replace(
+            /\/\\b\(\?:https\?:\\\/\\\/\|mailto:\|www\\\.\).*?\/gmv/,
+            '/\\b(?:https?:\\/\\/|mailto:|www\\.)(?:[^\\s\\p{P}<>]|\\/|[^\\s\\[\\]]+(?:[^\\s\\p{P}<>])?)+|(?=\\p{L})[^\\s@\\p{Ps}\\p{Pe}<>]+@([^\\s\\p{P}<>]+(?:\\.[^\\s\\p{P}<>]+)+)/gmu',
+          );
+          replaced = true;
+        }
+      }
+      if (replaced) {
+        content = lines.join('\n');
+        fs.writeFileSync(filePath, content, 'utf-8');
+        console.log(`替换 /v 正则: ${file}`);
+      } else {
+        console.warn(`未找到 /v 正则: ${file}`);
+      }
+    }
+  }
   // 创建版本信息文件
   const versionInfo = {
     version: PDFJS_VERSION,

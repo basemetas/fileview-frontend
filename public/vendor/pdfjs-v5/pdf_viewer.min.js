@@ -4931,7 +4931,7 @@ class Autolinker {
   static #regex;
   static #numericTLDRegex;
   static findLinks(text) {
-    this.#regex ??= /\b(?:https?:\/\/|mailto:|www\.)(?:[\S--[\p{P}<>]]|\/|[\S--[\[\]]]+[\S--[\p{P}<>]])+|(?=\p{L})[\S--[@\p{Ps}\p{Pe}<>]]+@([\S--[[\p{P}--\-]<>]]+(?:\.[\S--[[\p{P}--\-]<>]]+)+)/gmv;
+    this.#regex ??= /\b(?:https?:\/\/|mailto:|www\.)(?:[^\s\p{P}<>]|\/|[^\s\[\]]+(?:[^\s\p{P}<>])?)+|(?=\p{L})[^\s@\p{Ps}\p{Pe}<>]+@([^\s\p{P}<>]+(?:\.[^\s\p{P}<>]+)+)/gmu;
     const [normalizedText, diffs] = normalize(text, {
       ignoreDashEOL: true
     });

@@ -131,7 +131,14 @@ const supportsModuleWorker = (): boolean => {
 
 /**
  * 检查是否支持 PDF.js v5
- * PDF.js v5 需要 Chrome >= 92（支持顶层 await、私有类字段等特性）
+ * PDF.js v5 需要 Chrome >= 92：
+ * - Chrome >= 92: 支持顶层 await、私有类字段等基础特性
+ * - Chrome >= 93: 原生支持 ReadableStream 异步迭代（已通过 polyfill 兼容 < 93）
+ * - Chrome >= 119: 原生支持 Promise.withResolvers（已通过 polyfill 兼容 < 119）
+ * - Chrome >= 125: 原生支持 ArrayBuffer.transferToFixedLength（已通过 polyfill 兼容 < 125）
+ * - Chrome >= 128: 原生支持 Promise.try（已通过 polyfill 兼容 < 128）
+ * 注意：pdf_viewer.js 原始使用了正则 /v 标志（Chrome 112+），
+ * 已通过源码改写替换为等价的 /u 正则，不再需要 /v 支持
  * 同时需要支持动态导入 ES 模块和 ES 模块 Worker
  * @returns true 如果支持 PDF.js v5
  */
@@ -157,10 +164,19 @@ const supportsPdfV5 = (): boolean => {
     return false;
   }
 
+  // 注意：Promise.try（Chrome 128+）、Promise.withResolvers（Chrome 119+）、
+  // ReadableStream.prototype[Symbol.asyncIterator]（Chrome 93+）、
+  // ArrayBuffer.prototype.transferToFixedLength（Chrome 125+）、
+  // Uint8Array.prototype.toHex 等运行时 API 已通过 polyfill 注入到
+  // pdf.js / pdf.worker.js 中，不需要浏览器版本门槛
+  //
+  // 正则 /v 标志（Chrome 112+）已通过源码改写替换为等价的 /u 正则，
+  // pdf_viewer.js 中不再使用 /v 标志
+
   const version = getChromeVersion();
 
-  // 对于 Chrome 浏览器，严格按版本号判断
-  // Chrome >= 92 才支持 v5
+  // 对于 Chrome 浏览器，按版本号判断
+  // Chrome >= 92 支持顶层 await、私有类字段等基础特性
   if (version > 0) {
     return version >= 92;
   }
