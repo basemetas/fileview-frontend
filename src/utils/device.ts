@@ -16,20 +16,35 @@
 
 // 是否是手机
 const isPhoneFun = (): boolean => {
+  // 优先使用 CSS 像素（逻辑分辨率）
+  const width =
+    window.innerWidth || document.documentElement.clientWidth || screen.width;
+  const height =
+    window.innerHeight ||
+    document.documentElement.clientHeight ||
+    screen.height;
+  const minSide = Math.min(width, height);
+
+  // 手机逻辑宽度通常 < 768px
+  if (minSide >= 768) return false;
+
+  // 触摸点判断（保留）
   if (navigator.maxTouchPoints <= 0) return false;
 
-  const minSide = Math.min(screen.width, screen.height);
-  if (minSide >= 600) return false;
-
-  // 排除桌面 UA（极少数）
+  // 排除桌面设备（更精确）
   const ua = navigator.userAgent.toLowerCase();
-  if (/windows|macintosh|linux/.test(ua)) return false;
+  const isDesktop =
+    /windows|macintosh|linux/.test(ua) &&
+    !/mobile|android|iphone|ipad/.test(ua);
+  if (isDesktop) return false;
 
   return true;
 };
 
 // 是否是 Pad（iPad + Android Pad + Huawei MatePad）
 const isPadFun = (): boolean => {
+  if (isPhoneFun()) return false;
+
   const ua = navigator.userAgent || '';
 
   // 1️⃣ iPad UA（老 iPad / 早期 iPadOS）
