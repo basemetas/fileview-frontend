@@ -95,6 +95,8 @@ export interface IDocumentLoadingTask {
 export interface IPdfLoadOptions {
   url: string;
   password?: string;
+  cMapUrl?: string;
+  cMapPacked?: boolean;
 }
 
 /**

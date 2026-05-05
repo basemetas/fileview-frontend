@@ -30,7 +30,8 @@ import type {
   IDocumentLoadingTask,
   IPasswordResponses,
 } from './types';
-import { log } from '@/utils';
+import { log, getAppContext } from '@/utils';
+const webPrefix = getAppContext() + '/preview';
 
 /**
  * PDF.js v2 适配器实现
@@ -71,7 +72,13 @@ export class PdfAdapterV2 implements IPdfAdapter {
    */
   getDocument(options: IPdfLoadOptions): IDocumentLoadingTask {
     this.init();
-    return pdfjsLib.getDocument(options) as unknown as IDocumentLoadingTask;
+    // 自动注入 CMap 配置，用于中日韩等非嵌入字体字符映射
+    const loadOptions = {
+      ...options,
+      cMapUrl: `${webPrefix}/vendor/pdfjs-v5/cmaps/`,
+      cMapPacked: true,
+    };
+    return pdfjsLib.getDocument(loadOptions) as unknown as IDocumentLoadingTask;
   }
 
   /**

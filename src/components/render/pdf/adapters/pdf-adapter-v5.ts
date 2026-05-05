@@ -154,7 +154,14 @@ export class PdfAdapterV5 implements IPdfAdapter {
       );
     }
 
-    return this._pdfjsLib.getDocument(options);
+    // 自动注入 CMap 配置，用于中日韩等非嵌入字体字符映射
+    const loadOptions = {
+      ...options,
+      cMapUrl: `${webPrefix}/vendor/pdfjs-v5/cmaps/`,
+      cMapPacked: true,
+    };
+
+    return this._pdfjsLib.getDocument(loadOptions);
   }
 
   /**

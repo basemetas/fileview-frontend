@@ -29,6 +29,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const http = require('http');
+const zlib = require('zlib');
 
 // PDF.js v5 版本号
 const PDFJS_VERSION = '5.5.207';
@@ -336,6 +337,74 @@ if (typeof ArrayBuffer !== "undefined" &&
       }
     }
   }
+
+  // 下载并提取 CMap 文件（用于中日韩等非嵌入字体字符映射）
+  console.log('\n下载 CMap 文件...');
+  const cmapsDir = path.join(OUTPUT_DIR, 'cmaps');
+  if (!fs.existsSync(cmapsDir)) {
+    fs.mkdirSync(cmapsDir, { recursive: true });
+  }
+
+  const npmTarballUrl = `https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-${PDFJS_VERSION}.tgz`;
+  const tarPath = path.join(OUTPUT_DIR, 'pdfjs-dist.tgz');
+
+  try {
+    await downloadFile(npmTarballUrl, tarPath);
+
+    // 解压 gzip
+    const tarBuffer = zlib.gunzipSync(fs.readFileSync(tarPath));
+
+    // 简单解析 tar 格式，提取 package/cmaps/ 下的 .bcmap 文件
+    let offset = 0;
+    let extractedCount = 0;
+    while (offset < tarBuffer.length - 512) {
+      // 文件名：偏移 0，长度 100
+      const nameEnd = tarBuffer.indexOf(0, offset);
+      const name = tarBuffer
+        .toString('utf-8', offset, nameEnd > 0 ? nameEnd : offset + 100)
+        .trim();
+
+      // 文件大小：偏移 124，长度 12，八进制
+      const sizeStr = tarBuffer
+        .toString('utf-8', offset + 124, offset + 136)
+        .trim();
+      const size = parseInt(sizeStr, 8);
+
+      // 文件类型：偏移 156，长度 1
+      const typeFlag = tarBuffer.toString('utf-8', offset + 156, offset + 157);
+
+      if (!name && size === 0) {
+        // 两个空块表示结束
+        break;
+      }
+
+      if (
+        name.startsWith('package/cmaps/') &&
+        name.endsWith('.bcmap') &&
+        typeFlag === '0'
+      ) {
+        const destName = path.basename(name);
+        const destPath = path.join(cmapsDir, destName);
+        const dataStart = offset + 512;
+        fs.writeFileSync(
+          destPath,
+          tarBuffer.subarray(dataStart, dataStart + size),
+        );
+        extractedCount++;
+      }
+
+      // 跳到下一个条目（header 512 + 数据填充到 512 边界）
+      offset += 512 + Math.ceil(size / 512) * 512;
+    }
+
+    // 删除临时 tarball
+    fs.unlinkSync(tarPath);
+    console.log(`提取 CMap 文件: ${extractedCount} 个`);
+  } catch (error) {
+    console.warn('下载或提取 CMap 失败:', error.message);
+    console.warn('中文/日文/韩文 PDF 可能无法正常显示文字');
+  }
+
   // 创建版本信息文件
   const versionInfo = {
     version: PDFJS_VERSION,
