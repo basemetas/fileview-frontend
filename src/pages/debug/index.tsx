@@ -94,6 +94,12 @@ const FILE_GROUPS: FileGroup[] = [
         url: 'https://test.moqisoft.com/%E9%80%9A%E8%A1%8C%E8%B4%B9%E5%8F%91%E7%A5%A8.pdf',
         icon: <FilePdfOutlined />,
       },
+      // https://test.moqisoft.com/%E6%96%87%E4%BB%B6%E5%A4%B9%E5%B5%8C%E5%A5%97.7z
+      {
+        name: '文件夹三层嵌套',
+        url: 'https://test.moqisoft.com/%E6%96%87%E4%BB%B6%E5%A4%B9%E5%B5%8C%E5%A5%97.7z',
+        icon: <FileZipOutlined />,
+      },
     ],
   },
   {
