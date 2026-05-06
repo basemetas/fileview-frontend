@@ -136,7 +136,7 @@ data 示例
  * @returns 如果提供了 fullPath，返回匹配的节点数组；否则返回完整数据
  */
 export const getArchiveRenderData = (data: any[], fullPath?: string): any[] => {
-  log.debug('getArchiveRenderData => fullPath', fullPath);
+  log.debug('getArchiveRenderData => fullPath', data, fullPath);
 
   // 格式化节点数据，移除 children 字段
   const formatNode = (node: any) => {
@@ -160,8 +160,8 @@ export const getArchiveRenderData = (data: any[], fullPath?: string): any[] => {
     return formatNodes(data);
   }
 
-  // 标准化路径：确保以 / 结尾（目录）或不以 / 结尾（文件）
-  const normalizedPath = fullPath.trim();
+  // 标准化路径：去除首尾空白，并移除尾部斜杠（目录/文件统一）
+  const normalizedPath = fullPath.trim().replace(/\/$/, '');
 
   // 递归搜索函数
   const findNode = (nodes: any[], targetPath: string): any | null => {
