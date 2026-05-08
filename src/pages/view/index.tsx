@@ -65,6 +65,38 @@ export default function View() {
         : IMode.normal;
   const searchParamsData = searchParams.get('data') || '';
 
+  const normalizeRequestData = (input: IRequestData): IRequestData => {
+    const normalized: IRequestData = { ...input };
+    const normalizedStorage = normalized.storage?.trim();
+    const isNamedOss = !!normalizedStorage && normalizedStorage !== 'local';
+    normalized.storage = normalizedStorage;
+
+    if (isNamedOss) {
+      if (normalized.path && normalized.path.trim() === '') {
+        delete normalized.path;
+      }
+
+      if (normalized.path && !normalized.url) {
+        const bucket = normalized.bucket?.trim();
+        const objectKey = normalized.path.trim().replace(/^\/+/, '');
+        normalized.url = bucket
+          ? `s3://${bucket}/${objectKey}`
+          : `s3:///${objectKey}`;
+      }
+
+      if (!normalized.url) {
+        throw new Error('OSS 预览时必须提供 path 或 url');
+      }
+      return normalized;
+    }
+
+    if (normalized.path && normalized.url) {
+      delete normalized.url;
+    }
+
+    return normalized;
+  };
+
   // 处理参数
   useEffect(() => {
     if (searchParamsData) {
@@ -73,9 +105,10 @@ export default function View() {
         const jsonStr = safeBase64Decode(searchParamsData || '');
         log.debug('jsonStr', jsonStr);
         const decodeed = JSON.parse(jsonStr);
-        log.debug('data 参数解析成功', decodeed);
+        const normalizedData = normalizeRequestData(decodeed);
+        log.debug('data 参数解析成功', normalizedData);
 
-        setRequestData(decodeed);
+        setRequestData(normalizedData);
       } catch (error) {
         // 参数解析失败
         log.error('data 参数解析失败', searchParamsData);
@@ -109,10 +142,16 @@ export default function View() {
   useEffect(() => {
     log.info('requestData', requestData);
     if (!requestData) return;
-    const { url, path } = requestData || ({} as { url: string; path: string });
+    const { url, path, storage } = requestData ||
+      ({} as { url: string; path: string; storage?: string });
     if (!url && !path) {
       setLoadingError(true);
       showLoadingError('参数错误', '请检查参数后重试');
+      return;
+    }
+    if (storage && storage !== 'local' && !url) {
+      setLoadingError(true);
+      showLoadingError('参数错误', 'OSS 预览参数缺失，请检查 path 或 url');
     }
   }, [requestData, showLoadingError]);
 

@@ -29,6 +29,12 @@ const Entry = (props: IEntryProps) => {
   const {
     url,
     path,
+    storage,
+    bucket,
+    region,
+    endpoint,
+    accessKey,
+    secretKey,
     fileName,
     displayName,
     mode = IMode.normal,
@@ -44,6 +50,7 @@ const Entry = (props: IEntryProps) => {
   // 规范传参与服务端一致
   const networkFileUrl = url;
   let originalFilePath = path;
+  const isNamedOss = !!storage && storage !== 'local';
 
   // 最简单的请求文件转换并返回结果
   const requestFileRender = useCallback(async () => {
@@ -51,8 +58,14 @@ const Entry = (props: IEntryProps) => {
     try {
       const result = await requestConvertFile({
         networkFileUrl,
-        originalFilePath,
+        originalFilePath: isNamedOss ? undefined : originalFilePath,
+        storage,
         fileName,
+        bucket,
+        region,
+        endpoint,
+        accessKey,
+        secretKey,
       });
 
       const {
