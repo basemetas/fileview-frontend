@@ -52,9 +52,25 @@ const FINISHED_STATUS_ENUM = [
 export async function requestConvertFile(options: {
   networkFileUrl?: string;
   originalFilePath?: string;
+  storage?: string;
   fileName?: string;
+  bucket?: string;
+  region?: string;
+  endpoint?: string;
+  accessKey?: string;
+  secretKey?: string;
 }): Promise<any> {
-  const { networkFileUrl, originalFilePath, fileName } = options;
+  const {
+    networkFileUrl,
+    originalFilePath,
+    storage,
+    fileName,
+    bucket,
+    region,
+    endpoint,
+    accessKey,
+    secretKey,
+  } = options;
   if (!networkFileUrl && !originalFilePath) {
     return {
       code: 400,
@@ -75,6 +91,12 @@ export async function requestConvertFile(options: {
   } as any;
   if (networkFileUrl) {
     data.networkFileUrl = autoFixedURI(networkFileUrl);
+    data.storage = storage !== '' ? storage : undefined;
+    data.bucket = bucket !== '' ? bucket : undefined;
+    data.region = region !== '' ? region : undefined;
+    data.endpoint = endpoint !== '' ? endpoint : undefined;
+    data.accessKey = accessKey !== '' ? accessKey : undefined;
+    data.secretKey = secretKey !== '' ? secretKey : undefined;
   } else {
     data.srcRelativePath =
       originalFilePath !== '' ? originalFilePath : undefined;
