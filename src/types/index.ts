@@ -93,9 +93,17 @@ export enum IMode {
   sign = 'sign', // 签批模式
 }
 
+export type StorageType = string;
+
 export interface IRequestData {
   url?: string;
   path?: string;
+  storage?: StorageType;
+  bucket?: string;
+  region?: string;
+  endpoint?: string;
+  accessKey?: string;
+  secretKey?: string;
   fileName?: string;
   displayName?: string;
   mode?: IMode;
