@@ -41,8 +41,13 @@ const { Title } = Typography;
 // 文件类型定义
 interface FileItem {
   name: string;
-  url: string;
+  fileName?: string;
+  displayName?: string;
+  url?: string;
   icon: React.ReactElement;
+  storage?: string;
+  path?: string;
+  bucket?: string;
   badge?: string; // 可选标记（如：加密标识）
   options?: any;
 }
@@ -575,6 +580,24 @@ const FILE_GROUPS: FileGroup[] = [
       },
     ],
   },
+  {
+    title: 'S3存储',
+    files: [
+      {
+        name: 'URL方式',
+        fileName: 'sample.doc',
+        url: 's3://test/sample.doc',
+        storage: 'minioA',
+        icon: <CodeOutlined />,
+      },
+      {
+        name: 'path方式',
+        storage: 'minioA',
+        path: '25.pdf',
+        icon: <CodeOutlined />,
+      },
+    ],
+  },
 ];
 
 export default function Test() {
@@ -617,22 +640,32 @@ export default function Test() {
               }}
             >
               {group.files.map((file, index) => {
-                const { options, name, url } = file;
+                const {
+                  options,
+                  name,
+                  url,
+                  storage,
+                  path,
+                  fileName,
+                  displayName,
+                } = file;
                 const queryString = qs.stringify({
                   ...options,
-                  displayName: encodeURIComponent(name),
+                  displayName: encodeURIComponent(displayName || name),
+                  fileName: fileName ? encodeURIComponent(fileName) : undefined,
                   watermark: encodeURIComponent(
                     options?.watermark || '在线文件预览\nbasemetas.cn',
                   ),
+                  storage,
+                  path,
                   url,
-                  // mode: 'embed',
                 });
-                // console.log(queryString);
+                console.log(queryString);
                 const previewUrl = `
                   ${appContext}/preview/view?${queryString} 
                 `;
                 // console.log(previewUrl);
-                const decodedUrl = encodeURIComponent(file.url);
+                const decodedUrl = encodeURIComponent(file.url || '');
                 return (
                   <div
                     key={index}
