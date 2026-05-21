@@ -160,21 +160,22 @@ export const getArchiveRenderData = (data: any[], fullPath?: string): any[] => {
     return formatNodes(data);
   }
 
-  // 标准化路径：去除首尾空白，并移除尾部斜杠（目录/文件统一）
-  const normalizedPath = fullPath.trim().replace(/\/$/, '');
+  // 路径标准化：统一移除尾部斜杠（不同压缩包节点的 fullPath 可能带或不带尾部斜杠）
+  const normalizePath = (p: string) => p.replace(/\/$/, '');
+  const normalizedPath = normalizePath(fullPath.trim());
 
   // 递归搜索函数
   const findNode = (nodes: any[], targetPath: string): any | null => {
     for (const node of nodes) {
-      // 精确匹配当前节点的完整路径
-      if (node.fullPath === targetPath) {
+      // 精确匹配当前节点的完整路径（两边都去除尾部斜杠后比较）
+      if (normalizePath(node.fullPath) === targetPath) {
         return node;
       }
 
       // 如果当前节点是目录且有子节点，递归搜索
       if (node.isDirectory && node.children && node.children.length > 0) {
         // 检查目标路径是否在当前节点的子树中（路径前缀匹配优化）
-        if (targetPath.startsWith(node.fullPath)) {
+        if (targetPath.startsWith(normalizePath(node.fullPath))) {
           const result = findNode(node.children, targetPath);
           if (result) {
             return result;

@@ -47,7 +47,6 @@ interface FileItem {
   icon: React.ReactElement;
   storage?: string;
   path?: string;
-  bucket?: string;
   badge?: string; // 可选标记（如：加密标识）
   options?: any;
 }
