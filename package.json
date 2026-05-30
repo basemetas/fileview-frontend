@@ -24,7 +24,7 @@
     "download:pdfjs-v5": "node scripts/download-pdfjs-v5.cjs"
   },
   "dependencies": {
-    "@ant-design/icons": "^6.0.2",
+    "@ant-design/icons": "^4.8.3",
     "@x-viewer/core": "^0.21.9",
     "abortcontroller-polyfill": "^1.7.8",
     "antd": "^4.24.16",
