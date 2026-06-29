@@ -360,6 +360,12 @@ const FILE_GROUPS: FileGroup[] = [
         url: 'https://test.moqisoft.com/Sample-Tiff-File-download-for-Testing.tiff',
         icon: <FileImageOutlined />,
       },
+      // multipage_color_lzw_5pages.tif
+      {
+        name: '多页 TIFF 文件',
+        url: 'https://test.moqisoft.com/multipage_color_lzw_5pages.tif',
+        icon: <FileImageOutlined />,
+      },
       {
         name: 'PSD 文件',
         url: 'https://test.moqisoft.com/%E8%BD%AC%E7%9B%98%E5%BA%95%E5%9B%BE.psd',
