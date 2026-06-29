@@ -1444,7 +1444,7 @@ const PdfViewer = (props: renderProps) => {
                   });
                 } else {
                   // 双页模式逻辑：从第一页开始两两并排 [1,2], [3,4]...
-                  const rows = [];
+                  const rows: PageInfo[][] = [];
                   for (let i = 0; i < pages.length; i += 2) {
                     const pair = [pages[i]];
                     if (i + 1 < pages.length) {
@@ -1453,6 +1453,47 @@ const PdfViewer = (props: renderProps) => {
                     rows.push(pair);
                   }
 
+                  const getPageLayoutSize = (pageInfo: PageInfo) => {
+                    const baseViewport = pageInfo.viewport.clone({
+                      scale: 1.0,
+                    });
+                    const dw = baseViewport.width * scale;
+                    const dh = baseViewport.height * scale;
+
+                    if (rotation % 180 !== 0) {
+                      return {
+                        width: dh,
+                        height: dw,
+                      };
+                    }
+
+                    return {
+                      width: dw,
+                      height: dh,
+                    };
+                  };
+                  const pageLayoutSizeMap = new Map<
+                    number,
+                    ReturnType<typeof getPageLayoutSize>
+                  >();
+                  pages.forEach((pageInfo) => {
+                    pageLayoutSizeMap.set(
+                      pageInfo.pageNum,
+                      getPageLayoutSize(pageInfo),
+                    );
+                  });
+                  const leftColumnWidth = rows.reduce((maxWidth, row) => {
+                    const pageSize = pageLayoutSizeMap.get(row[0].pageNum);
+                    return Math.max(maxWidth, pageSize?.width || 0);
+                  }, 0);
+                  const rightColumnWidth = rows.reduce((maxWidth, row) => {
+                    if (!row[1]) {
+                      return maxWidth;
+                    }
+                    const pageSize = pageLayoutSizeMap.get(row[1].pageNum);
+                    return Math.max(maxWidth, pageSize?.width || 0);
+                  }, 0);
+
                   return rows.map((row, rowIndex) => {
                     return (
                       <div
@@ -1460,29 +1501,23 @@ const PdfViewer = (props: renderProps) => {
                         style={{
                           display: 'flex',
                           justifyContent: 'center',
-                          alignItems: 'flex-start',
+                          alignItems: 'center',
                           margin: '20px auto',
                           width: 'max-content',
                           minWidth: '100%',
                         }}
                       >
-                        {row.map((pageInfo) => {
-                          // viewport 已经在加载时处理过，横向页面已旋转
-                          const baseViewport = pageInfo.viewport.clone({
-                            scale: 1.0,
-                          });
-                          const dw = baseViewport.width * scale;
-                          const dh = baseViewport.height * scale;
-
-                          // 计算布局宽高
-                          let layoutWidth = dw;
-                          let layoutHeight = dh;
-                          if (rotation % 180 !== 0) {
-                            // 手动旋转时交换宽高
-                            layoutWidth = dh;
-                            layoutHeight = dw;
-                          }
-
+                        {row.map((pageInfo, pageIndex) => {
+                          const layoutSize = pageLayoutSizeMap.get(
+                            pageInfo.pageNum,
+                          ) || {
+                            width: 0,
+                            height: 0,
+                          };
+                          const slotWidth =
+                            pageIndex === 0
+                              ? leftColumnWidth
+                              : rightColumnWidth;
                           // 变换逻辑：只对手动旋转应用 CSS transform
                           const transform =
                             rotation !== 0 ? `rotate(${rotation}deg)` : '';
@@ -1499,15 +1534,15 @@ const PdfViewer = (props: renderProps) => {
                               }}
                               data-page={pageInfo.pageNum}
                               style={{
-                                width: `${layoutWidth}px`,
-                                height: `${layoutHeight}px`,
+                                width: `${slotWidth}px`,
+                                height: `${layoutSize.height}px`,
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center',
+                                justifyContent:
+                                  pageIndex === 0 ? 'flex-end' : 'flex-start',
                                 position: 'relative',
                                 overflow: 'visible',
-                                marginLeft:
-                                  row.indexOf(pageInfo) > 0 ? '20px' : '0',
+                                marginLeft: pageIndex > 0 ? '20px' : '0',
                               }}
                             >
                               <div
@@ -1542,6 +1577,18 @@ const PdfViewer = (props: renderProps) => {
                             </div>
                           );
                         })}
+                        {row.length === 1 && rightColumnWidth > 0 && (
+                          <div
+                            aria-hidden='true'
+                            style={{
+                              width: `${rightColumnWidth}px`,
+                              height: '1px',
+                              marginLeft: '20px',
+                              visibility: 'hidden',
+                              flexShrink: 0,
+                            }}
+                          />
+                        )}
                       </div>
                     );
                   });
