@@ -169,10 +169,9 @@ const Page = (props: PageComponentProps) => {
     // 清空之前的内容
     textLayerRef.current.innerHTML = '';
 
-    // 计算文字层专用的 Viewport (始终 0 旋转，基于当前 renderScale)
+    // 文字层沿用页面 viewport 的旋转，确保与 canvas 内容对齐。
     const textViewport = pageInfo.viewport.clone({
       scale: renderScale,
-      rotation: 0,
     });
 
     try {

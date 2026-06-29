@@ -201,27 +201,11 @@ const PdfViewer = (props: renderProps) => {
         // 预计算页面的viewport信息和文本内容，只处理允许的页数
         const pageInfos: PageInfo[] = [];
 
-        // 先获取第一页的方向作为基准
-        const firstPage = await pdfInstance.getPage(1);
-        const firstViewport = firstPage.getViewport({ scale: 1.0 });
-        const firstAspectRatio = firstViewport.width / firstViewport.height;
-        const firstIsLandscape = firstAspectRatio > 1.2;
-
         for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
           const page = await pdfInstance.getPage(pageNum);
 
-          // 获取原始 viewport（scale=1.0）
-          const originalViewport = page.getViewport({ scale: 1.0 });
-
-          // 判断当前页面方向
-          const aspectRatio = originalViewport.width / originalViewport.height;
-          const isLandscape = aspectRatio > 1.2;
-
-          // 如果当前页面方向与第一页不一致，说明数据异常，需要旋转
-          const needsRotation = isLandscape !== firstIsLandscape;
-          const viewport = needsRotation
-            ? page.getViewport({ scale: 1.0, rotation: 90 })
-            : originalViewport;
+          // Use PDF.js default viewport so each page keeps its own MediaBox and /Rotate.
+          const viewport = page.getViewport({ scale: 1.0 });
 
           // 获取页面文本内容
           let textContent: any | undefined;
@@ -372,7 +356,7 @@ const PdfViewer = (props: renderProps) => {
         (pageIndex: number, scale: number) => {
           const page = pagesRef.current[pageIndex];
           if (!page) return null;
-          return page.viewport.clone({ scale, rotation: 0 });
+          return page.viewport.clone({ scale });
         },
       );
       // 设置初始 renderScale
@@ -1130,7 +1114,9 @@ const PdfViewer = (props: renderProps) => {
           // 计算高亮在页面中的相对位置（考虑 CSS 缩放）
           const baseViewport = pagesRef.current[
             match.pageIndex
-          ]?.viewport.clone({ scale: 1.0, rotation: 0 });
+          ]?.viewport.clone({
+            scale: 1.0,
+          });
           if (!baseViewport) return;
 
           const renderScale =
