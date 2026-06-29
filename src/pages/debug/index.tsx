@@ -86,6 +86,12 @@ const FILE_GROUPS: FileGroup[] = [
         url: 'https://test.moqisoft.com/Doc1.1.pdf',
         icon: <FilePdfOutlined />,
       },
+      // https://test.moqisoft.com/%E6%96%B9%E5%90%91%E5%BC%82%E5%B8%B82.pdf
+      {
+        name: '方向异常2',
+        url: 'https://test.moqisoft.com/%E6%96%B9%E5%90%91%E5%BC%82%E5%B8%B82.pdf',
+        icon: <FilePdfOutlined />,
+      },
       // https://test.moqisoft.com/%E5%86%85%E5%90%ABvisio%E5%9B%BE-x2t.pdf
       {
         name: '包含 visio 图的 PDF',
