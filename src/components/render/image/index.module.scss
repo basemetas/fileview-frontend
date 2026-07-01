@@ -7,9 +7,11 @@
   padding: 20px;
   box-sizing: border-box;
 
-  // 多图模式下取消 flex 居中，让网格自然铺开，超出时滚动
+  // 多图模式：flex 列布局，safe center 在未溢出时垂直居中，溢出时回退为 flex-start 并出现滚动条
   &.multi {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    justify-content: safe center;
     height: 100%;
     overflow-y: auto;
   }
@@ -75,13 +77,19 @@
 }
 
 .image-gallery {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  margin: -6px;
+
+  &.centered {
+    justify-content: center;
+  }
 }
 
 .image-item {
   position: relative;
+  width: calc((100% - 36px) / 3);
+  margin: 6px;
   aspect-ratio: 1;
   border-radius: 6px;
   overflow: hidden;
@@ -200,15 +208,23 @@
 /* 响应式设计 */
 @media (max-width: 768px) {
   .image-gallery {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    margin: -4px;
+  }
+
+  .image-item {
+    width: calc((100% - 24px) / 3);
+    margin: 4px;
   }
 }
 
 @media (max-width: 480px) {
   .image-gallery {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
+    margin: -3px;
+  }
+
+  .image-item {
+    width: calc((100% - 12px) / 2);
+    margin: 3px;
   }
 
   .image-viewer-container {

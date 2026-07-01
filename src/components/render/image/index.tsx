@@ -142,7 +142,10 @@ const ImageViewer = (props: renderProps) => {
         >
           {isMultiPage && sortedPages.length > 0 ? (
             /* 多图模式：九宫格 */
-            <div ref={galleryRef} className={styles['image-gallery']}>
+            <div
+              ref={galleryRef}
+              className={`${styles['image-gallery']}${sortedPages.length < 3 ? ` ${styles.centered}` : ''}`}
+            >
               {sortedPages.map(({ page, url }) => (
                 <div
                   key={page}
