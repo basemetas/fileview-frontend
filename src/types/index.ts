@@ -130,6 +130,10 @@ export interface WaterMarkProps {
 
 export interface IEntryProps extends IRequestData {}
 
+export interface IPageUrls {
+  [page: number]: string;
+}
+
 export interface renderProps {
   isRoot?: boolean; // 是否是根组件
   renderType?: string; // 渲染类型
@@ -142,6 +146,8 @@ export interface renderProps {
   type?: 'video' | 'audio'; // 文件类型，音频或视频
   error?: string;
   mode?: IMode;
+  isMultiPage?: boolean; // 是否多页
+  pageUrls?: IPageUrls; // 页面 URL 列表
 }
 
 export interface PermissionProps {

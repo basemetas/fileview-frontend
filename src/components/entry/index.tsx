@@ -129,6 +129,8 @@ const Entry = (props: IEntryProps) => {
         previewFileFormat,
         originalFilePath,
         srcRelativePath,
+        isMultiPage = false,
+        pageUrls = {},
       } = data;
       log.debug({
         status,
@@ -139,6 +141,8 @@ const Entry = (props: IEntryProps) => {
         previewFileFormat,
         originalFilePath,
         srcRelativePath,
+        isMultiPage,
+        pageUrls,
       });
 
       if (['PASSWORD_REQUIRED', 'PASSWORD_INCORRECT'].includes(status)) {
@@ -200,6 +204,8 @@ const Entry = (props: IEntryProps) => {
             previewFileFormat={previewFileFormat}
             error={error}
             mode={mode}
+            isMultiPage={isMultiPage}
+            pageUrls={pageUrls}
           />
         </AppContext.Provider>,
       );

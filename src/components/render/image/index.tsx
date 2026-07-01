@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import Viewer from 'viewerjs';
 import 'viewerjs/dist/viewer.css';
 import styles from './index.module.scss';
@@ -24,32 +24,53 @@ import { log } from '@/utils';
 import Footer from '@/components/footer';
 
 const ImageViewer = (props: renderProps) => {
-  const { src, fileName, displayName = '', mode = IMode.normal } = props;
+  const {
+    src,
+    fileName,
+    displayName = '',
+    mode = IMode.normal,
+    isMultiPage,
+    pageUrls,
+  } = props;
+
+  console.debug('ImageViewer props:', props);
+
   const { hideLoading, showLoadingError } = useLoading();
   const imgRef = useRef<HTMLImageElement>(null);
   const viewerRef = useRef<Viewer | null>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // 将 pageUrls 转为有序数组，按页码排序
+  const sortedPages = useMemo(() => {
+    if (!isMultiPage || !pageUrls) return [];
+    return Object.entries(pageUrls)
+      .map(([page, url]) => ({ page: Number(page), url }))
+      .sort((a, b) => a.page - b.page);
+  }, [isMultiPage, pageUrls]);
+
+  const hasImages = isMultiPage ? sortedPages.length > 0 : !!src;
 
   // 初始化 Viewer.js
   useEffect(() => {
-    if (src) {
-      hideLoading();
-    } else {
+    if (!hasImages) {
       return showLoadingError(undefined, '文件预览地址不存在');
     }
+    hideLoading();
 
-    if (imgRef.current && !viewerRef.current) {
-      viewerRef.current = new Viewer(imgRef.current, {
-        // 查看器配置
+    // 多图模式：在 gallery 容器上初始化 Viewer（自动识别所有子 <img>）
+    const targetEl = isMultiPage ? galleryRef.current : imgRef.current;
+    if (targetEl && !viewerRef.current) {
+      viewerRef.current = new Viewer(targetEl, {
         title: false,
         toolbar: {
           zoomIn: 1,
           zoomOut: 1,
           oneToOne: 1,
           reset: 1,
-          prev: 0,
+          prev: isMultiPage ? 1 : 0,
           play: 0,
-          next: 0,
+          next: isMultiPage ? 1 : 0,
           rotateLeft: 1,
           rotateRight: 1,
           flipHorizontal: 1,
@@ -57,14 +78,11 @@ const ImageViewer = (props: renderProps) => {
         },
         viewed: () => {
           log.debug('图片被查看');
-          // 对原图容器应用高斯模糊
           if (containerRef.current) {
             containerRef.current.style.filter = 'blur(20px)';
           }
         },
         hidden: () => {
-          // 查看器隐藏时的回调
-          // 移除原图容器的高斯模糊
           if (containerRef.current) {
             containerRef.current.style.filter = 'none';
           }
@@ -72,14 +90,13 @@ const ImageViewer = (props: renderProps) => {
       });
     }
 
-    // 清理函数
     return () => {
       if (viewerRef.current) {
         viewerRef.current.destroy();
         viewerRef.current = null;
       }
     };
-  }, [hideLoading, showLoadingError, src]);
+  }, [hideLoading, showLoadingError, src, isMultiPage, sortedPages, hasImages]);
 
   // 打开查看器
   const openViewer = () => {
@@ -119,23 +136,49 @@ const ImageViewer = (props: renderProps) => {
         <div className={styles.topbar}>{displayName || fileName}</div>
       )}
       <div className={styles.pageCanvas}>
-        <div ref={containerRef} className={styles['image-viewer-container']}>
-          <img
-            ref={imgRef}
-            src={src}
-            alt={fileName}
-            style={{
-              maxWidth: '100%',
-              maxHeight: '100%',
-              minWidth: '30%',
-              minHeight: '30%',
-              width: 'auto',
-              height: 'auto',
-              cursor: 'pointer',
-            }}
-            onClick={openViewer}
-            onLoad={handleImageLoad}
-          />
+        <div
+          ref={containerRef}
+          className={`${styles['image-viewer-container']}${isMultiPage ? ` ${styles.multi}` : ''}`}
+        >
+          {isMultiPage && sortedPages.length > 0 ? (
+            /* 多图模式：九宫格 */
+            <div ref={galleryRef} className={styles['image-gallery']}>
+              {sortedPages.map(({ page, url }) => (
+                <div
+                  key={page}
+                  className={styles['image-item']}
+                  onClick={() => {
+                    if (viewerRef.current) {
+                      viewerRef.current.view(page - 1);
+                    }
+                  }}
+                >
+                  <img src={url} alt={`第 ${page} 页`} />
+                  <div className={styles['image-badge']}>{page}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* 单图模式 */
+            <div className={styles['image-viewer-single']}>
+              <img
+                ref={imgRef}
+                src={src}
+                alt={fileName}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  minWidth: '30%',
+                  minHeight: '30%',
+                  width: 'auto',
+                  height: 'auto',
+                  cursor: 'pointer',
+                }}
+                onClick={openViewer}
+                onLoad={handleImageLoad}
+              />
+            </div>
+          )}
         </div>
       </div>
       <Footer {...props} />
