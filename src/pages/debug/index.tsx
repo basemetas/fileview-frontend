@@ -592,6 +592,89 @@ const FILE_GROUPS: FileGroup[] = [
     ],
   },
   {
+    title: '异常 PDF',
+    files: [
+      {
+        name: '00 规范基线（验证环境正常）',
+        url: 'https://test.moqisoft.com/pdftest/00_valid_reference.pdf',
+        icon: <FilePdfOutlined />,
+      },
+      {
+        name: '01 startxref 指向 0',
+        url: 'https://test.moqisoft.com/pdftest/01_bad_startxref_zero.pdf',
+        icon: <FilePdfOutlined />,
+      },
+      {
+        name: '02 startxref 偏移提前 16 字节',
+        url: 'https://test.moqisoft.com/pdftest/02_bad_startxref_minus_16.pdf',
+        icon: <FilePdfOutlined />,
+      },
+      {
+        name: '03 startxref 指向普通对象而非 xref',
+        url: 'https://test.moqisoft.com/pdftest/03_bad_startxref_points_to_object.pdf',
+        icon: <FilePdfOutlined />,
+      },
+      {
+        name: '04 xref 所有 in-use 对象 offset +1',
+        url: 'https://test.moqisoft.com/pdftest/04_xref_offsets_plus_1.pdf',
+        icon: <FilePdfOutlined />,
+      },
+      {
+        name: '05 xref 所有 in-use 对象 offset 指向 0',
+        url: 'https://test.moqisoft.com/pdftest/05_xref_offsets_to_zero.pdf',
+        icon: <FilePdfOutlined />,
+      },
+      {
+        name: '06 xref entry 未固定宽度补零',
+        url: 'https://test.moqisoft.com/pdftest/06_xref_short_entries.pdf',
+        icon: <FilePdfOutlined />,
+      },
+      {
+        name: '07 xref 将内容流标记为 free',
+        url: 'https://test.moqisoft.com/pdftest/07_xref_missing_content_entry.pdf',
+        icon: <FilePdfOutlined />,
+        badge: 'wps也是空白',
+      },
+      {
+        name: '08 xref 将页面对象标记为 free',
+        url: 'https://test.moqisoft.com/pdftest/08_xref_missing_page_entry.pdf',
+        icon: <FilePdfOutlined />,
+      },
+      {
+        name: '09 trailer /Size 小于实际对象数量',
+        url: 'https://test.moqisoft.com/pdftest/09_trailer_size_too_small.pdf',
+        icon: <FilePdfOutlined />,
+      },
+      {
+        name: '10 xref 声明数量小于实际 entry 数',
+        url: 'https://test.moqisoft.com/pdftest/10_xref_count_too_small_extra_entries.pdf',
+        icon: <FilePdfOutlined />,
+      },
+      {
+        name: '11 xref 两个 subsection 间漏掉页面对象',
+        url: 'https://test.moqisoft.com/pdftest/11_xref_subsections_gap.pdf',
+        icon: <FilePdfOutlined />,
+        badge: '失败',
+      },
+      {
+        name: '12 完全无 xref/trailer（仅保留对象体）',
+        url: 'https://test.moqisoft.com/pdftest/12_no_xref_table.pdf',
+        icon: <FilePdfOutlined />,
+        badge: '失败',
+      },
+      {
+        name: '13 增量更新中 /Prev 指向错误位置',
+        url: 'https://test.moqisoft.com/pdftest/13_incremental_update_broken_prev.pdf',
+        icon: <FilePdfOutlined />,
+      },
+      {
+        name: '14 xref CRLF 后每行 21 字节',
+        url: 'https://test.moqisoft.com/pdftest/14_xref_crlf_21_byte_entries.pdf',
+        icon: <FilePdfOutlined />,
+      },
+    ],
+  },
+  {
     title: 'S3存储',
     files: [
       {
