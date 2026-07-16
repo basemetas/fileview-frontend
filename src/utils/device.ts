@@ -46,6 +46,7 @@ const isPadFun = (): boolean => {
   if (isPhoneFun()) return false;
 
   const ua = navigator.userAgent || '';
+  const uaLower = ua.toLowerCase();
 
   // 1️⃣ iPad UA（老 iPad / 早期 iPadOS）
   if (/iPad/.test(ua)) return true;
@@ -56,9 +57,26 @@ const isPadFun = (): boolean => {
     return true;
   }
 
+  // P0: 排除桌面操作系统（Windows / Linux）
+  // 这些操作系统即使有触屏也不是平板设备
+  if (/windows|linux/.test(uaLower) && !/mobile|android|tablet/.test(uaLower)) {
+    return false;
+  }
+
   // 3️⃣ 其他 Android Pad / MatePad
   if (navigator.maxTouchPoints <= 1) return false;
 
+  // P1: 检查是否有精细指向设备（鼠标/触控板）
+  const hasFinePointer =
+    window.matchMedia?.('(any-pointer: fine)').matches ?? false;
+
+  // P2: 检查是否支持 hover 交互
+  const hasHover = window.matchMedia?.('(hover: hover)').matches ?? false;
+
+  // P1 + P2: 同时具备精细指针和 hover 能力，大概率是触屏笔记本而非平板
+  if (hasFinePointer && hasHover) return false;
+
+  // 确认主指向设备为粗指针（手指），这是平板的典型特征
   const isCoarsePointer =
     window.matchMedia?.('(pointer: coarse)').matches ?? false;
 
