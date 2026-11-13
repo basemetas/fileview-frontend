@@ -53,6 +53,22 @@ const FILES_TO_DOWNLOAD = [
     src: `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/web/pdf_viewer.css`,
     dest: 'pdf_viewer.css',
   },
+  {
+    src: `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/wasm/openjpeg.wasm`,
+    dest: 'wasm/openjpeg.wasm',
+  },
+  {
+    src: `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/wasm/openjpeg_nowasm_fallback.js`,
+    dest: 'wasm/openjpeg_nowasm_fallback.js',
+  },
+  {
+    src: `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/wasm/LICENSE_OPENJPEG`,
+    dest: 'wasm/LICENSE_OPENJPEG',
+  },
+  {
+    src: `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/wasm/LICENSE_PDFJS_OPENJPEG`,
+    dest: 'wasm/LICENSE_PDFJS_OPENJPEG',
+  },
 ];
 
 // 输出目录
@@ -142,6 +158,7 @@ async function main() {
   // 下载所有文件
   for (const file of FILES_TO_DOWNLOAD) {
     const destPath = path.join(OUTPUT_DIR, file.dest);
+    fs.mkdirSync(path.dirname(destPath), { recursive: true });
 
     // 构建备用 URL 列表
     const urls = [
