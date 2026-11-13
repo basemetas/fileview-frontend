@@ -1,10 +1,14 @@
 {
   "version": "5.5.207",
-  "downloadDate": "2026-05-05T09:36:35.597Z",
+  "downloadDate": "2026-11-13T08:36:39.734Z",
   "files": [
     "pdf.js",
     "pdf.worker.js",
     "pdf_viewer.js",
-    "pdf_viewer.css"
+    "pdf_viewer.css",
+    "wasm/openjpeg.wasm",
+    "wasm/openjpeg_nowasm_fallback.js",
+    "wasm/LICENSE_OPENJPEG",
+    "wasm/LICENSE_PDFJS_OPENJPEG"
   ]
 }

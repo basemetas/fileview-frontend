@@ -159,6 +159,7 @@ export class PdfAdapterV5 implements IPdfAdapter {
       ...options,
       cMapUrl: `${webPrefix}/vendor/pdfjs-v5/cmaps/`,
       cMapPacked: true,
+      wasmUrl: `${webPrefix}/vendor/pdfjs-v5/wasm/`,
     };
 
     return this._pdfjsLib.getDocument(loadOptions);

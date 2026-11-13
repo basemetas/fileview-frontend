@@ -12,8 +12,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --force",
-    "prebuild": "node scripts/transform-worker.cjs",
+    "prebuild": "node scripts/check-pdfjs-v5-assets.cjs && node scripts/transform-worker.cjs",
     "build": "tsc && vite build",
+    "postbuild": "node scripts/check-pdfjs-v5-assets.cjs dist/vendor/pdfjs-v5",
     "lint": "npm run lint:js && npm run lint:css-compat",
     "lint:js": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --fix",
